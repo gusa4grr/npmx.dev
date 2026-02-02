@@ -75,7 +75,7 @@ function isCellLoading(index: number): boolean {
     <div
       v-for="(value, index) in values"
       :key="index"
-      class="comparison-cell relative flex items-end justify-center px-4 py-3 border-b border-border"
+      class="comparison-cell relative flex items-center justify-center px-4 py-3 border-b border-border"
     >
       <!-- Background bar for numeric values -->
       <div
@@ -102,7 +102,7 @@ function isCellLoading(index: number): boolean {
       <template v-else>
         <TooltipApp v-if="value.tooltip" :text="value.tooltip" position="top">
           <span
-            class="relative font-mono text-sm tabular-nums cursor-help"
+            class="relative font-mono text-sm text-center tabular-nums cursor-help"
             :class="getStatusClass(value.status)"
           >
             <!-- Date values use DateTime component for i18n and user settings -->
@@ -112,7 +112,7 @@ function isCellLoading(index: number): boolean {
         </TooltipApp>
         <span
           v-else
-          class="relative font-mono text-sm tabular-nums"
+          class="relative font-mono text-sm text-center tabular-nums"
           :class="getStatusClass(value.status)"
         >
           <!-- Date values use DateTime component for i18n and user settings -->
