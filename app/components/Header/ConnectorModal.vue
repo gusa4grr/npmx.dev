@@ -2,7 +2,7 @@
 const { isConnected, isConnecting, npmUser, error, hasOperations, connect, disconnect } =
   useConnector()
 
-const { userLocalSettings } = useUserLocalSettings()
+const { localSettings } = useUserLocalSettings()
 
 const tokenInput = shallowRef('')
 const portInput = shallowRef('31415')
@@ -68,7 +68,7 @@ const executeNpmxConnectorCommand = computed(() => {
       <div class="flex flex-col gap-2">
         <SettingsToggle
           :label="$t('connector.modal.auto_open_url')"
-          v-model="userLocalSettings.connector.autoOpenURL"
+          v-model="localSettings.connector.autoOpenURL"
         />
       </div>
 
@@ -157,7 +157,7 @@ const executeNpmxConnectorCommand = computed(() => {
             <div class="flex flex-col gap-2">
               <SettingsToggle
                 :label="$t('connector.modal.auto_open_url')"
-                v-model="userLocalSettings.connector.autoOpenURL"
+                v-model="localSettings.connector.autoOpenURL"
               />
             </div>
           </div>
