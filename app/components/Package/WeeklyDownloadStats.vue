@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const route = useRoute()
-const { settings } = useSettings()
+const { localSettings } = useUserLocalSettings()
 
 const chartModal = useModal('chart-modal')
 const hasChartModalTransitioned = shallowRef(false)
@@ -185,14 +185,14 @@ watch(
 const correctedDownloads = computed<WeeklyDataPoint[]>(() => {
   let data = weeklyDownloads.value as WeeklyDataPoint[]
   if (!data.length) return data
-  if (settings.value.chartFilter.anomaliesFixed) {
+  if (localSettings.value.chartFilter.anomaliesFixed) {
     data = applyBlocklistCorrection({
       data,
       packageName: props.packageName,
       granularity: 'weekly',
     }) as WeeklyDataPoint[]
   }
-  data = applyDataCorrection(data, settings.value.chartFilter) as WeeklyDataPoint[]
+  data = applyDataCorrection(data, localSettings.value.chartFilter) as WeeklyDataPoint[]
   return data
 })
 
