@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const router = useRouter()
 const route = useRoute()
-const { settings } = useSettings()
+const { localSettings } = useUserLocalSettings()
 
 const chartModal = useModal('chart-modal')
 const hasChartModalTransitioned = shallowRef(false)
