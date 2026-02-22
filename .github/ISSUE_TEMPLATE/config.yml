@@ -2,4 +2,4 @@ blank_issues_enabled: true
 contact_links:
   - name: 📚 npmx documentation
     url: https://docs.npmx.dev/
-    about: Check the documentation for usage of Npmx
+    about: Check the documentation for usage of npmx
