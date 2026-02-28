@@ -26,6 +26,8 @@ export const UserPreferencesSchema = object({
   colorModePreference: optional(nullable(ColorModePreferenceSchema)),
   /** Search provider for package search: 'npm' or 'algolia' */
   searchProvider: optional(SearchProviderSchema),
+  /** Whether keyboard shortcuts are enabled globally */
+  keyboardShortcuts: optional(boolean()),
   /** Timestamp of last update (ISO 8601) - managed by server */
   updatedAt: optional(string()),
 })
@@ -49,7 +51,8 @@ export const DEFAULT_USER_PREFERENCES: Required<Omit<UserPreferences, 'updatedAt
   hidePlatformPackages: true,
   selectedLocale: null,
   colorModePreference: null,
-  searchProvider: 'algolia',
+  searchProvider: import.meta.test ? 'npm' : 'algolia',
+  keyboardShortcuts: true,
 }
 
 export const USER_PREFERENCES_STORAGE_BASE = 'npmx-kv-user-preferences'

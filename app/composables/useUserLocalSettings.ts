@@ -6,6 +6,11 @@ export interface UserLocalSettings {
   connector: {
     autoOpenURL: boolean
   }
+  chartFilter: {
+    averageWindow: number
+    smoothingTau: number
+    anomaliesFixed: boolean
+  }
 }
 
 const STORAGE_KEY = 'npmx-settings'
@@ -16,6 +21,11 @@ const DEFAULT_USER_LOCAL_SETTINGS: UserLocalSettings = {
   },
   connector: {
     autoOpenURL: false,
+  },
+  chartFilter: {
+    averageWindow: 0,
+    smoothingTau: 1,
+    anomaliesFixed: true,
   },
 }
 

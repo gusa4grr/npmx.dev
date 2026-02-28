@@ -324,7 +324,7 @@ const setLocale: typeof setNuxti18nLocale = locale => {
             <SettingsToggle
               :label="$t('settings.keyboard_shortcuts_enabled')"
               :description="$t('settings.keyboard_shortcuts_enabled_description')"
-              v-model="settings.keyboardShortcuts"
+              v-model="keyboardShortcutsEnabled"
             />
           </div>
         </section>
