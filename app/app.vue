@@ -48,7 +48,7 @@ if (import.meta.server) {
 }
 
 const keyboardShortcuts = useKeyboardShortcuts()
-const { settings } = useSettings()
+const instantSearch = useInstantSearch()
 
 initKeyShortcuts()
 
@@ -57,7 +57,7 @@ onKeyDown(
   e => {
     if (e.ctrlKey) {
       e.preventDefault()
-      settings.value.instantSearch = !settings.value.instantSearch
+      instantSearch.value = !instantSearch.value
       return
     }
 
