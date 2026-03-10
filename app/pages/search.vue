@@ -482,7 +482,7 @@ function focusSearchInput() {
   searchInput?.focus()
 }
 
-const keyboardShortcuts = useKeyboardShortcuts()
+const keyboardShortcuts = useKeyboardShortcutsPreference()
 
 function handleResultsKeydown(e: KeyboardEvent) {
   if (!keyboardShortcuts.value) {

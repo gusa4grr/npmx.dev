@@ -7,7 +7,7 @@ const pagesWithLocalFilter = new Set(["~username", "org"]);
 const SEARCH_DEBOUNCE_MS = 100;
 
 export function useGlobalSearch(place: "header" | "content" = "content") {
-  const instantSearch = useInstantSearch();
+  const instantSearch = useInstantSearchPreference();
   const { searchProvider } = useSearchProvider();
   const searchProviderValue = computed(() => {
     const p = normalizeSearchParam(route.query.p);
