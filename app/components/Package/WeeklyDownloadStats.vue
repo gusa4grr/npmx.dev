@@ -209,7 +209,7 @@ const dataset = computed<VueUiSparklineDatasetItem[]>(() =>
 const lastDatapoint = computed(() => dataset.value.at(-1)?.period ?? '')
 
 const showPulse = shallowRef(true)
-const keyboardShortcuts = useKeyboardShortcuts()
+const keyboardShortcuts = useKeyboardShortcutsPreference()
 
 const cheatCode = [
   'arrowup',
