@@ -12,6 +12,61 @@ export function initPreferencesOnPrehydrate() {
   // Callback is stringified by Nuxt - external variables won't be available.
   // All constants must be hardcoded inside the callback.
   onPrehydrate(() => {
+    // See comment above for oxlint-disable reason
+    // oxlint-disable-next-line eslint-plugin-unicorn(consistent-function-scoping)
+    function getValueFromLs<T>(lsKey: string): T | undefined {
+      try {
+        const value = localStorage.getItem(lsKey)
+        if (value) {
+          const parsed = JSON.parse(value)
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            return parsed
+          }
+        }
+      } catch {
+        return undefined
+      }
+    }
+    // oxlint-disable-next-line eslint-plugin-unicorn(consistent-function-scoping)
+    function migrateLegacySettings() {
+      const migrationFlag = 'npmx-prefs-migrated'
+      if (localStorage.getItem(migrationFlag)) return
+
+      const legacySettings = getValueFromLs<UserPreferences>('npmx-settings') || {}
+      let userPreferences = getValueFromLs<UserPreferences>('npmx-user-preferences') || {}
+
+      const migratableKeys = [
+        'accentColorId',
+        'preferredBackgroundTheme',
+        'selectedLocale',
+        'relativeDates',
+      ] as const
+
+      const keysToMigrate = migratableKeys.filter(
+        key => key in legacySettings && !(key in userPreferences),
+      )
+
+      if (keysToMigrate.length > 0) {
+        const migrated = Object.fromEntries(keysToMigrate.map(key => [key, legacySettings[key]]))
+        userPreferences = { ...userPreferences, ...migrated }
+        localStorage.setItem('npmx-user-preferences', JSON.stringify(userPreferences))
+      }
+
+      // Clean migrated fields from legacy storage
+      const keysToRemove = migratableKeys.filter(key => key in legacySettings)
+      if (keysToRemove.length > 0) {
+        const cleaned = { ...legacySettings }
+        for (const key of keysToRemove) {
+          delete cleaned[key]
+        }
+        localStorage.setItem('npmx-settings', JSON.stringify(cleaned))
+      }
+
+      localStorage.setItem(migrationFlag, '1')
+    }
+
+    migrateLegacySettings()
+
     // Valid accent color IDs (must match --swatch-* variables defined in main.css)
     const accentColorIds = new Set([
       'sky',
@@ -27,10 +82,7 @@ export function initPreferencesOnPrehydrate() {
     const validPMs = new Set(['npm', 'pnpm', 'yarn', 'bun', 'deno', 'vlt'])
 
     // Read user preferences from localStorage
-    let preferences: UserPreferences = {}
-    try {
-      preferences = JSON.parse(localStorage.getItem('npmx-user-preferences') || '{}')
-    } catch {}
+    const preferences = getValueFromLs<UserPreferences>('npmx-user-preferences') || {}
 
     const accentColorId = preferences.accentColorId
     if (accentColorId && accentColorIds.has(accentColorId)) {
@@ -64,10 +116,7 @@ export function initPreferencesOnPrehydrate() {
     // Set data attribute for CSS-based visibility
     document.documentElement.dataset.pm = pm
 
-    let localSettings: Partial<UserLocalSettings> = {}
-    try {
-      localSettings = JSON.parse(localStorage.getItem('npmx-settings') || '{}')
-    } catch {}
+    const localSettings = getValueFromLs<Partial<UserLocalSettings>>('npmx-settings') || {}
     document.documentElement.dataset.collapsed = localSettings.sidebar?.collapsed?.join(' ') ?? ''
   })
 }
