@@ -524,11 +524,11 @@
     "metrics": {
       "esm": "ES Modules supported",
       "cjs": "CommonJS supported",
-      "no_esm": "No ES Modules support",
+      "no_esm": "ES Modules unsupported",
       "types_label": "Types",
       "types_included": "Types included",
       "types_available": "Types available via {package}",
-      "no_types": "No TypeScript types"
+      "no_types": "No types"
     },
     "license": {
       "view_spdx": "View license text on SPDX",
