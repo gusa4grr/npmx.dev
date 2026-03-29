@@ -24,7 +24,7 @@ const props = defineProps<{
   facetLoading?: boolean
 }>()
 
-const colorMode = useColorMode()
+const { colorMode } = useColorModePreference()
 const resolvedMode = shallowRef<'light' | 'dark'>('light')
 const rootEl = shallowRef<HTMLElement | null>(null)
 const { width } = useElementSize(rootEl)

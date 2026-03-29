@@ -26,6 +26,7 @@ export function useColorModePreference() {
   }
 
   return {
+    colorMode,
     colorModePreference: computed(
       () => preferences.value.colorModePreference ?? colorMode.preference,
     ),

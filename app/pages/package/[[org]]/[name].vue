@@ -477,54 +477,6 @@ useSeoMeta({
   twitterDescription: () => pkg.value?.description ?? "",
 });
 
-const codeLink = computed((): RouteLocationRaw | null => {
-  if (pkg.value == null || resolvedVersion.value == null) {
-    return null;
-  }
-  const split = pkg.value.name.split("/");
-  return {
-    name: "code",
-    params: {
-      org: split.length === 2 ? split[0] : undefined,
-      packageName: split.length === 2 ? split[1]! : split[0]!,
-      version: resolvedVersion.value,
-      filePath: "",
-    },
-  };
-});
-
-const keyboardShortcuts = useKeyboardShortcutsPreference();
-
-onKeyStroke(
-  (e) => keyboardShortcuts.value && isKeyWithoutModifiers(e, ".") && !isEditableElement(e.target),
-  (e) => {
-    if (codeLink.value === null) return;
-    e.preventDefault();
-
-    navigateTo(codeLink.value);
-  },
-  { dedupe: true },
-);
-
-onKeyStroke(
-  (e) => keyboardShortcuts.value && isKeyWithoutModifiers(e, "d") && !isEditableElement(e.target),
-  (e) => {
-    if (!docsLink.value) return;
-    e.preventDefault();
-    navigateTo(docsLink.value);
-  },
-  { dedupe: true },
-);
-
-onKeyStroke(
-  (e) => keyboardShortcuts.value && isKeyWithoutModifiers(e, "c") && !isEditableElement(e.target),
-  (e) => {
-    if (!pkg.value) return;
-    e.preventDefault();
-    router.push({ name: "compare", query: { packages: pkg.value.name } });
-  },
-);
-
 const showSkeleton = shallowRef(false);
 </script>
 

@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref, shallowRef } from 'vue'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
-import type { NpmSearchResponse } from '#shared/types'
 import PackageSelector from '~/components/Compare/PackageSelector.vue'
 
 const mockSearchData = shallowRef<NpmSearchResponse | null>(null)

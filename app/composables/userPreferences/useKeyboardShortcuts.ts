@@ -1,7 +1,7 @@
 export const useKeyboardShortcutsPreference = createSharedComposable(
-  function useKeyboardShortcutsPreference() {
+  function useKeyboardShortcuts() {
     const { preferences } = useUserPreferencesState()
-    const enabled = computed(() => preferences.value.keyboardShortcuts ?? true)
+    const enabled = computed(() => preferences.value.keyboardShortcuts)
 
     if (import.meta.client) {
       watch(

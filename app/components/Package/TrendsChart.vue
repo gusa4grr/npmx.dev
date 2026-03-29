@@ -62,7 +62,7 @@ const { accentColors, selectedAccentColor } = useAccentColor();
 const { localSettings } = useUserLocalSettings();
 const { copy, copied } = useClipboard();
 
-const colorMode = useColorMode();
+const { colorMode } = useColorModePreference();
 const resolvedMode = shallowRef<"light" | "dark">("light");
 const rootEl = shallowRef<HTMLElement | null>(null);
 const isZoomed = shallowRef(false);

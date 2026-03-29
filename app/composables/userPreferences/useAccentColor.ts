@@ -1,9 +1,17 @@
-import { ACCENT_COLORS } from '#shared/utils/constants'
-import type { AccentColorId } from '#shared/schemas/userPreferences'
-
 export function useAccentColor() {
   const { preferences } = useUserPreferencesState()
-  const colorMode = useColorMode()
+  const { colorMode } = useColorModePreference()
+  const { t } = useI18n()
+
+  const accentColorLabels = computed<Record<AccentColorId, string>>(() => ({
+    sky: t('settings.accent_colors.sky'),
+    coral: t('settings.accent_colors.coral'),
+    amber: t('settings.accent_colors.amber'),
+    emerald: t('settings.accent_colors.emerald'),
+    violet: t('settings.accent_colors.violet'),
+    magenta: t('settings.accent_colors.magenta'),
+    neutral: t('settings.clear_accent'),
+  }))
 
   const accentColors = computed(() => {
     const isDark = colorMode.value === 'dark'
@@ -11,7 +19,7 @@ export function useAccentColor() {
 
     return Object.entries(colors).map(([id, value]) => ({
       id: id as AccentColorId,
-      name: id,
+      label: accentColorLabels.value[id as AccentColorId],
       value,
     }))
   })

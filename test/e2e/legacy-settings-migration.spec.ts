@@ -10,6 +10,11 @@ const MIGRATABLE_KEYS = [
   'preferredBackgroundTheme',
   'selectedLocale',
   'relativeDates',
+  'includeTypesInInstall',
+  'hidePlatformPackages',
+  'searchProvider',
+  'instantSearch',
+  'keyboardShortcuts',
 ] as const
 
 async function injectLocalStorage(page: Page, entries: Record<string, string>) {
@@ -53,6 +58,11 @@ test.describe('Legacy settings migration', () => {
       preferredBackgroundTheme: 'slate',
       selectedLocale: 'de',
       relativeDates: true,
+      includeTypesInInstall: false,
+      hidePlatformPackages: false,
+      searchProvider: 'npm',
+      instantSearch: false,
+      keyboardShortcuts: false,
       // non-migratable key should remain untouched
       sidebar: { collapsed: ['deps'] },
     }
@@ -69,6 +79,11 @@ test.describe('Legacy settings migration', () => {
       preferredBackgroundTheme: 'slate',
       selectedLocale: 'de',
       relativeDates: true,
+      includeTypesInInstall: false,
+      hidePlatformPackages: false,
+      searchProvider: 'npm',
+      instantSearch: false,
+      keyboardShortcuts: false,
     })
 
     await verifyLegacyCleaned(page)

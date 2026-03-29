@@ -20,6 +20,7 @@ const props = defineProps<{
 const router = useRouter()
 const route = useRoute()
 const { localSettings } = useUserLocalSettings()
+const { preferences } = useUserPreferencesState()
 
 const chartModal = useModal('chart-modal')
 const hasChartModalTransitioned = shallowRef(false)
@@ -63,7 +64,7 @@ const { fetchPackageDownloadEvolution } = useCharts()
 
 const { accentColors, selectedAccentColor } = useAccentColor()
 
-const colorMode = useColorMode()
+const { colorMode } = useColorModePreference()
 
 const resolvedMode = shallowRef<'light' | 'dark'>('light')
 
@@ -306,7 +307,7 @@ function layEgg() {
   showPulse.value = false
   nextTick(() => {
     showPulse.value = true
-    settings.value.enableGraphPulseLooping = !settings.value.enableGraphPulseLooping
+    preferences.value.enableGraphPulseLooping = !preferences.value.enableGraphPulseLooping
     playEggPulse()
   })
 }
@@ -364,7 +365,7 @@ const config = computed<VueUiSparklineConfig>(() => {
         color: colors.value.borderHover,
         pulse: {
           show: showPulse.value, // the pulse will not show if prefers-reduced-motion (enforced by vue-data-ui)
-          loop: settings.value.enableGraphPulseLooping,
+          loop: preferences.value.enableGraphPulseLooping,
           radius: 1.5,
           color: pulseColor.value!,
           easing: 'ease-in-out',

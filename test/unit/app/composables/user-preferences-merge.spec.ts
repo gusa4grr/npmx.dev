@@ -7,62 +7,75 @@ import {
   type HydratedUserPreferences,
 } from '~/utils/preferences-merge'
 
-describe('user preferences merge logic', () => {
-  const defaults: HydratedUserPreferences = { ...DEFAULT_USER_PREFERENCES }
+const createPrefs = (
+  overrides: Partial<HydratedUserPreferences> = {},
+): HydratedUserPreferences => ({
+  ...DEFAULT_USER_PREFERENCES,
+  ...overrides,
+})
 
+const createServerPrefs = (
+  overrides: Partial<UserPreferences> = {},
+  includeDefaults = true,
+): UserPreferences => ({
+  ...(includeDefaults ? DEFAULT_USER_PREFERENCES : {}),
+  ...overrides,
+})
+
+const createServerResult = (
+  isNewUser: boolean,
+  preferences: UserPreferences = createServerPrefs(),
+): ServerPreferencesResult => ({
+  preferences,
+  isNewUser,
+})
+
+describe('user preferences merge logic', () => {
   describe('arePreferencesEqual', () => {
     it('returns true when all preference keys match', () => {
-      const a = { ...defaults, accentColorId: 'rose' }
-      const b = { ...defaults, accentColorId: 'rose' }
+      const a = createPrefs({ accentColorId: 'magenta' })
+      const b = createPrefs({ accentColorId: 'magenta' })
       expect(arePreferencesEqual(a, b)).toBe(true)
     })
 
     it('returns false when a preference key differs', () => {
-      const a = { ...defaults, accentColorId: 'rose' }
-      const b = { ...defaults, accentColorId: 'amber' }
+      const a = createPrefs({ accentColorId: 'magenta' })
+      const b = createPrefs({ accentColorId: 'amber' })
       expect(arePreferencesEqual(a, b)).toBe(false)
     })
 
     it('ignores updatedAt when comparing', () => {
-      const a = { ...defaults, updatedAt: '2025-01-01T00:00:00Z' }
-      const b = { ...defaults, updatedAt: '2026-02-28T12:00:00Z' }
+      const a = createPrefs({ updatedAt: '2025-01-01T00:00:00Z' })
+      const b = createPrefs({ updatedAt: '2026-02-28T12:00:00Z' })
       expect(arePreferencesEqual(a, b)).toBe(true)
     })
   })
 
   describe('first-time user (isNewUser: true)', () => {
     it('preserves local preferences when server has no stored prefs', () => {
-      const localPrefs: HydratedUserPreferences = {
-        ...defaults,
-        accentColorId: 'rose',
+      const localPrefs = createPrefs({
+        accentColorId: 'magenta',
         colorModePreference: 'dark',
         selectedLocale: 'de',
-      }
+      })
 
-      const serverResult: ServerPreferencesResult = {
-        preferences: { ...DEFAULT_USER_PREFERENCES },
-        isNewUser: true,
-      }
+      const serverResult = createServerResult(true)
 
       const { merged, shouldPushToServer } = mergePreferences(localPrefs, serverResult)
 
-      expect(merged.accentColorId).toBe('rose')
+      expect(merged.accentColorId).toBe('magenta')
       expect(merged.colorModePreference).toBe('dark')
       expect(merged.selectedLocale).toBe('de')
       expect(shouldPushToServer).toBe(true)
     })
 
     it('local prefs are returned unchanged', () => {
-      const localPrefs: HydratedUserPreferences = {
-        ...defaults,
+      const localPrefs = createPrefs({
         relativeDates: true,
         keyboardShortcuts: false,
-      }
+      })
 
-      const serverResult: ServerPreferencesResult = {
-        preferences: { ...DEFAULT_USER_PREFERENCES },
-        isNewUser: true,
-      }
+      const serverResult = createServerResult(true)
 
       const { merged } = mergePreferences(localPrefs, serverResult)
 
@@ -72,23 +85,19 @@ describe('user preferences merge logic', () => {
 
   describe('returning user (isNewUser: false)', () => {
     it('server preferences override local preferences', () => {
-      const localPrefs: HydratedUserPreferences = {
-        ...defaults,
-        accentColorId: 'rose',
+      const localPrefs = createPrefs({
+        accentColorId: 'magenta',
         colorModePreference: 'dark',
-      }
+      })
 
-      const serverPrefs: UserPreferences = {
-        ...DEFAULT_USER_PREFERENCES,
-        accentColorId: 'amber',
-        colorModePreference: 'light',
-        updatedAt: '2026-01-15T10:00:00Z',
-      }
-
-      const serverResult: ServerPreferencesResult = {
-        preferences: serverPrefs,
-        isNewUser: false,
-      }
+      const serverResult = createServerResult(
+        false,
+        createServerPrefs({
+          accentColorId: 'amber',
+          colorModePreference: 'light',
+          updatedAt: '2026-01-15T10:00:00Z',
+        }),
+      )
 
       const { merged, shouldPushToServer } = mergePreferences(localPrefs, serverResult)
 
@@ -98,23 +107,22 @@ describe('user preferences merge logic', () => {
     })
 
     it('local preferences fill new keys not yet stored on server (schema migration)', () => {
-      const localPrefs: HydratedUserPreferences = {
-        ...defaults,
-        accentColorId: 'rose',
+      const localPrefs = createPrefs({
+        accentColorId: 'magenta',
         selectedLocale: 'ja',
-      }
+      })
 
-      // Simulates a server response from before a new preference key was added:
-      // the server has accentColorId but not selectedLocale (added later)
-      const serverPrefs: UserPreferences = {
-        accentColorId: 'emerald',
-        updatedAt: '2026-01-15T10:00:00Z',
-      }
-
-      const serverResult: ServerPreferencesResult = {
-        preferences: serverPrefs,
-        isNewUser: false,
-      }
+      // Pass `false` to createServerPrefs to simulate a sparse object without defaults
+      const serverResult = createServerResult(
+        false,
+        createServerPrefs(
+          {
+            accentColorId: 'emerald',
+            updatedAt: '2026-01-15T10:00:00Z',
+          },
+          false,
+        ),
+      )
 
       const { merged } = mergePreferences(localPrefs, serverResult)
 
@@ -125,21 +133,14 @@ describe('user preferences merge logic', () => {
     })
 
     it('returning user with default server prefs keeps defaults (not a false first-login)', () => {
-      const localPrefs: HydratedUserPreferences = {
-        ...defaults,
-        accentColorId: 'rose',
-      }
+      const localPrefs = createPrefs({
+        accentColorId: 'magenta',
+      })
 
-      // User explicitly saved defaults on another device
-      const serverPrefs: UserPreferences = {
-        ...DEFAULT_USER_PREFERENCES,
-        updatedAt: '2026-02-01T00:00:00Z',
-      }
-
-      const serverResult: ServerPreferencesResult = {
-        preferences: serverPrefs,
-        isNewUser: false,
-      }
+      const serverResult = createServerResult(
+        false,
+        createServerPrefs({ updatedAt: '2026-02-01T00:00:00Z' }),
+      )
 
       const { merged, shouldPushToServer } = mergePreferences(localPrefs, serverResult)
 

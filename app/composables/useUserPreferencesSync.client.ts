@@ -104,12 +104,9 @@ function cancelPendingDebounce(): void {
   }
 }
 
-export function useUserPreferencesSync() {
-  const { user } = useAtproto()
+export function useUserPreferencesSync(isAuthenticated: Ref<boolean>) {
   const state = getSyncState()
   const router = useRouter()
-
-  const isAuthenticated = computed(() => !!user.value?.did)
 
   function scheduleSync(preferences: UserPreferences): void {
     if (!isAuthenticated.value) return
