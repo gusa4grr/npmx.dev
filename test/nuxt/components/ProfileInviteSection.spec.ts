@@ -1,12 +1,10 @@
 import { mockNuxtImport, mountSuspended, registerEndpoint } from '@nuxt/test-utils/runtime'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 
-const { mockUseAtproto, mockUseProfileLikes } = vi.hoisted(() => ({
-  mockUseAtproto: vi.fn(),
+const { mockUseProfileLikes } = vi.hoisted(() => ({
   mockUseProfileLikes: vi.fn(),
 }))
 
-mockNuxtImport('useAtproto', () => mockUseAtproto)
 mockNuxtImport('useProfileLikes', () => mockUseProfileLikes)
 
 import ProfilePage from '~/pages/profile/[identity]/index.vue'
@@ -19,18 +17,32 @@ registerEndpoint('/api/social/profile/test-handle', () => ({
   recordExists: false,
 }))
 
+function mockUseAtproto(
+  overrides: {
+    user?: Ref<Record<string, unknown> | null>
+    pending?: Ref<boolean>
+    logout?: () => Promise<void>
+  } = {},
+) {
+  globalThis.__useAtprotoMock = {
+    user: ref(null),
+    pending: ref(false),
+    logout: vi.fn(),
+    ...overrides,
+  } as UseAtprotoReturn
+}
+
 describe('Profile invite section', () => {
   beforeEach(() => {
-    mockUseAtproto.mockReset()
     mockUseProfileLikes.mockReset()
   })
 
+  afterEach(() => {
+    globalThis.__useAtprotoMock = undefined
+  })
+
   it('does not show invite section while auth is still loading', async () => {
-    mockUseAtproto.mockReturnValue({
-      user: ref(null),
-      pending: ref(true),
-      logout: vi.fn(),
-    })
+    mockUseAtproto({ pending: ref(true) })
 
     mockUseProfileLikes.mockReturnValue({
       data: ref({ records: [] }),
@@ -45,11 +57,7 @@ describe('Profile invite section', () => {
   })
 
   it('shows invite section after auth resolves for non-owner', async () => {
-    mockUseAtproto.mockReturnValue({
-      user: ref({ handle: 'other-user' }),
-      pending: ref(false),
-      logout: vi.fn(),
-    })
+    mockUseAtproto({ user: ref({ handle: 'other-user' }) })
 
     mockUseProfileLikes.mockReturnValue({
       data: ref({ records: [] }),
@@ -64,11 +72,7 @@ describe('Profile invite section', () => {
   })
 
   it('does not show invite section for profile owner', async () => {
-    mockUseAtproto.mockReturnValue({
-      user: ref({ handle: 'test-handle' }),
-      pending: ref(false),
-      logout: vi.fn(),
-    })
+    mockUseAtproto({ user: ref({ handle: 'test-handle' }) })
 
     mockUseProfileLikes.mockReturnValue({
       data: ref({ records: [] }),

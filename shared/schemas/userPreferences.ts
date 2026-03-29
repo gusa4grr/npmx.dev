@@ -1,12 +1,9 @@
 import { object, string, boolean, nullable, optional, picklist, type InferOutput } from 'valibot'
-import { ACCENT_COLORS, BACKGROUND_THEMES } from '#shared/utils/constants'
+import { ACCENT_COLOR_IDS, BACKGROUND_THEME_IDS } from '#shared/utils/constants'
 
-const AccentColorIdSchema = picklist(Object.keys(ACCENT_COLORS.light) as [string, ...string[]])
-
-const BackgroundThemeIdSchema = picklist(Object.keys(BACKGROUND_THEMES) as [string, ...string[]])
-
+const AccentColorIdSchema = picklist(ACCENT_COLOR_IDS)
+const BackgroundThemeIdSchema = picklist(BACKGROUND_THEME_IDS)
 const ColorModePreferenceSchema = picklist(['light', 'dark', 'system'])
-
 const SearchProviderSchema = picklist(['npm', 'algolia'])
 
 export const UserPreferencesSchema = object({
@@ -30,14 +27,14 @@ export const UserPreferencesSchema = object({
   keyboardShortcuts: optional(boolean()),
   /** Whether search runs as user types (vs requiring explicit submit) */
   instantSearch: optional(boolean()),
+  /** Whether the weekly download graph pulse animation loops continuously */
+  enableGraphPulseLooping: optional(boolean()),
   /** Timestamp of last update (ISO 8601) - managed by server */
   updatedAt: optional(string()),
 })
 
 export type UserPreferences = InferOutput<typeof UserPreferencesSchema>
 
-export type AccentColorId = keyof typeof ACCENT_COLORS.light
-export type BackgroundThemeId = keyof typeof BACKGROUND_THEMES
 export type ColorModePreference = 'light' | 'dark' | 'system'
 export type SearchProvider = 'npm' | 'algolia'
 
@@ -56,6 +53,7 @@ export const DEFAULT_USER_PREFERENCES: Required<Omit<UserPreferences, 'updatedAt
   searchProvider: import.meta.test ? 'npm' : 'algolia',
   keyboardShortcuts: true,
   instantSearch: true,
+  enableGraphPulseLooping: false,
 }
 
 export const USER_PREFERENCES_STORAGE_BASE = 'npmx-kv-user-preferences'

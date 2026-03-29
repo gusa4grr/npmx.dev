@@ -1,14 +1,22 @@
-import { BACKGROUND_THEMES } from '#shared/utils/constants'
-import type { BackgroundThemeId } from '#shared/schemas/userPreferences'
-
 export function useBackgroundTheme() {
-  const backgroundThemes = Object.entries(BACKGROUND_THEMES).map(([id, value]) => ({
-    id: id as BackgroundThemeId,
-    name: id,
-    value,
+  const { preferences } = useUserPreferencesState()
+  const { t } = useI18n()
+
+  const bgThemeLabels = computed<Record<BackgroundThemeId, string>>(() => ({
+    neutral: t('settings.background_themes.neutral'),
+    stone: t('settings.background_themes.stone'),
+    zinc: t('settings.background_themes.zinc'),
+    slate: t('settings.background_themes.slate'),
+    black: t('settings.background_themes.black'),
   }))
 
-  const { preferences } = useUserPreferencesState()
+  const backgroundThemes = computed(() =>
+    Object.entries(BACKGROUND_THEMES).map(([id, value]) => ({
+      id: id as BackgroundThemeId,
+      label: bgThemeLabels.value[id as BackgroundThemeId],
+      value,
+    })),
+  )
 
   function setBackgroundTheme(id: BackgroundThemeId | null) {
     if (import.meta.server) {

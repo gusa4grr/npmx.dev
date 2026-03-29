@@ -92,6 +92,8 @@ export const ACCENT_COLORS = {
   },
 } as const satisfies Record<'light' | 'dark', Record<AccentColorId, string>>
 
+export const BACKGROUND_THEME_IDS = ['neutral', 'stone', 'zinc', 'slate', 'black'] as const
+
 export const BACKGROUND_THEMES = {
   neutral: 'oklch(0.555 0 0)',
   stone: 'oklch(0.555 0.013 58.123)',
@@ -99,6 +101,8 @@ export const BACKGROUND_THEMES = {
   slate: 'oklch(0.555 0.046 257.407)',
   black: 'oklch(0.4 0 0)',
 } as const
+
+export type BackgroundThemeId = (typeof BACKGROUND_THEME_IDS)[number]
 
 // INFO: Regex for capture groups
 export const BLUESKY_URL_EXTRACT_REGEX = /profile\/([^/]+)\/post\/([^/]+)/

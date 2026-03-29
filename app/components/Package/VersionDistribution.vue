@@ -21,7 +21,7 @@ const props = defineProps<{
 const { accentColors, selectedAccentColor } = useAccentColor()
 const { copy, copied } = useClipboard()
 
-const colorMode = useColorMode()
+const { colorMode } = useColorModePreference()
 const resolvedMode = shallowRef<'light' | 'dark'>('light')
 const rootEl = shallowRef<HTMLElement | null>(null)
 

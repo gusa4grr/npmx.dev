@@ -1,67 +1,67 @@
 <script setup lang="ts">
-import { assertValidPackageName } from "#shared/utils/npm";
-import { getDependencyCount } from "~/utils/npm/dependency-count";
+import { assertValidPackageName } from '#shared/utils/npm'
+import { getDependencyCount } from '~/utils/npm/dependency-count'
 
-defineOgImageComponent("Package", {
+defineOgImageComponent('Package', {
   name: () => packageName.value,
-  version: () => requestedVersion.value ?? "",
-  primaryColor: "#60a5fa",
-});
+  version: () => requestedVersion.value ?? '',
+  primaryColor: '#60a5fa',
+})
 
-const readmeHeader = useTemplateRef("readmeHeader");
-const isReadmeHeaderPinned = shallowRef(false);
-const packageHeaderHeight = usePackageHeaderHeight();
-const readmeStickyTop = computed(() => `${56 + (packageHeaderHeight.value || 44)}px`);
+const readmeHeader = useTemplateRef('readmeHeader')
+const isReadmeHeaderPinned = shallowRef(false)
+const packageHeaderHeight = usePackageHeaderHeight()
+const readmeStickyTop = computed(() => `${56 + (packageHeaderHeight.value || 44)}px`)
 
 function isStickyPinned(el: HTMLElement | null): boolean {
-  if (!el) return false;
+  if (!el) return false
 
-  const style = getComputedStyle(el);
-  const top = parseFloat(style.top) || 0;
-  const rect = el.getBoundingClientRect();
+  const style = getComputedStyle(el)
+  const top = parseFloat(style.top) || 0
+  const rect = el.getBoundingClientRect()
 
-  return Math.abs(rect.top - top) < 1;
+  return Math.abs(rect.top - top) < 1
 }
 
 function checkHeaderPosition() {
-  isReadmeHeaderPinned.value = isStickyPinned(readmeHeader.value);
+  isReadmeHeaderPinned.value = isStickyPinned(readmeHeader.value)
 }
 
-useEventListener("scroll", checkHeaderPosition, { passive: true });
-useEventListener("resize", checkHeaderPosition);
+useEventListener('scroll', checkHeaderPosition, { passive: true })
+useEventListener('resize', checkHeaderPosition)
 
 onMounted(() => {
-  checkHeaderPosition();
-});
+  checkHeaderPosition()
+})
 
-const { packageName, requestedVersion } = usePackageRoute();
+const { packageName, requestedVersion } = usePackageRoute()
 
 const { data: resolvedVersion, status: resolvedStatus } = await useResolvedVersion(
   packageName,
   requestedVersion,
-);
+)
 
 if (import.meta.server) {
-  assertValidPackageName(packageName.value);
+  assertValidPackageName(packageName.value)
 }
 
 // Fetch README for specific version if requested, otherwise latest
 const { data: readmeData } = useLazyFetch<ReadmeResponse>(
   () => {
-    const base = `/api/registry/readme/${packageName.value}`;
-    const version = resolvedVersion.value;
-    return version ? `${base}/v/${version}` : base;
+    const base = `/api/registry/readme/${packageName.value}`
+    const version = resolvedVersion.value
+    return version ? `${base}/v/${version}` : base
   },
   {
     default: () => ({
-      html: "",
+      html: '',
       mdExists: false,
       playgroundLinks: [],
       toc: [],
       defaultValue: true,
     }),
   },
-);
+)
 
 const playgroundLinks = computed(() => [
   ...readmeData.value.playgroundLinks,
@@ -70,13 +70,13 @@ const playgroundLinks = computed(() => [
     ? [
         {
           url: pkg.value.storybook.url,
-          provider: "storybook",
-          providerName: "Storybook",
-          label: "Storybook",
+          provider: 'storybook',
+          providerName: 'Storybook',
+          label: 'Storybook',
         },
       ]
     : []),
-]);
+])
 
 const {
   data: readmeMarkdownData,
@@ -84,48 +84,48 @@ const {
   execute: fetchReadmeMarkdown,
 } = useLazyFetch<ReadmeMarkdownResponse>(
   () => {
-    const base = `/api/registry/readme/markdown/${packageName.value}`;
-    const version = resolvedVersion.value;
-    return version ? `${base}/v/${version}` : base;
+    const base = `/api/registry/readme/markdown/${packageName.value}`
+    const version = resolvedVersion.value
+    return version ? `${base}/v/${version}` : base
   },
   {
     server: false,
     immediate: false,
     default: () => ({}),
   },
-);
+)
 
 //copy README file as Markdown
 const { copied: copiedReadme, copy: copyReadme } = useClipboard({
-  source: () => "",
+  source: () => '',
   copiedDuring: 2000,
-});
+})
 
 function prefetchReadmeMarkdown() {
-  if (readmeMarkdownStatus.value === "idle") {
-    fetchReadmeMarkdown();
+  if (readmeMarkdownStatus.value === 'idle') {
+    fetchReadmeMarkdown()
   }
 }
 
 async function copyReadmeHandler() {
-  await fetchReadmeMarkdown();
+  await fetchReadmeMarkdown()
 
-  const markdown = readmeMarkdownData.value?.markdown;
-  if (!markdown) return;
+  const markdown = readmeMarkdownData.value?.markdown
+  if (!markdown) return
 
-  await copyReadme(markdown);
+  await copyReadme(markdown)
 }
 
 // Track active TOC item based on scroll position
-const tocItems = computed(() => readmeData.value?.toc ?? []);
-const { activeId: activeTocId } = useActiveTocItem(tocItems);
+const tocItems = computed(() => readmeData.value?.toc ?? [])
+const { activeId: activeTocId } = useActiveTocItem(tocItems)
 
 // Check if package exists on JSR (only for scoped packages)
 const { data: jsrInfo } = useLazyFetch<JsrPackageInfo>(() => `/api/jsr/${packageName.value}`, {
   default: () => ({ exists: false }),
   // Only fetch for scoped packages (JSR requirement)
-  immediate: computed(() => packageName.value.startsWith("@")).value,
-});
+  immediate: computed(() => packageName.value.startsWith('@')).value,
+})
 
 // Fetch total install size (lazy, can be slow for large dependency trees)
 const {
@@ -134,72 +134,72 @@ const {
   execute: fetchInstallSize,
 } = useLazyFetch<InstallSizeResult | null>(
   () => {
-    const base = `/api/registry/install-size/${packageName.value}`;
-    const version = resolvedVersion.value;
-    return version ? `${base}/v/${version}` : base;
+    const base = `/api/registry/install-size/${packageName.value}`
+    const version = resolvedVersion.value
+    return version ? `${base}/v/${version}` : base
   },
   {
     server: false,
     immediate: false,
   },
-);
+)
 
 // Trigger fetch only when we have the real resolved version
 watch(
   [resolvedVersion, resolvedStatus],
   ([version, status]) => {
-    if (version && status === "success") {
-      fetchInstallSize();
+    if (version && status === 'success') {
+      fetchInstallSize()
     }
   },
   { immediate: true },
-);
+)
 
 const { data: skillsData } = useLazyFetch<SkillsListResponse>(
   () => {
-    const base = `/skills/${packageName.value}`;
-    const version = resolvedVersion.value;
-    return version ? `${base}/v/${version}` : base;
+    const base = `/skills/${packageName.value}`
+    const version = resolvedVersion.value
+    return version ? `${base}/v/${version}` : base
   },
-  { default: () => ({ package: "", version: "", skills: [] }) },
-);
+  { default: () => ({ package: '', version: '', skills: [] }) },
+)
 
-const { data: packageAnalysis } = usePackageAnalysis(packageName, requestedVersion);
-const { data: moduleReplacement } = useModuleReplacement(packageName);
+const { data: packageAnalysis } = usePackageAnalysis(packageName, requestedVersion)
+const { data: moduleReplacement } = useModuleReplacement(packageName)
 
 if (
   import.meta.server &&
   !resolvedVersion.value &&
-  ["success", "error"].includes(resolvedStatus.value)
+  ['success', 'error'].includes(resolvedStatus.value)
 ) {
   throw createError({
     statusCode: 404,
-    statusMessage: $t("package.not_found"),
-    message: $t("package.not_found_message"),
-  });
+    statusMessage: $t('package.not_found'),
+    message: $t('package.not_found_message'),
+  })
 }
 
 watch(
   [resolvedStatus, resolvedVersion],
   ([status, version]) => {
-    if ((!version && status === "success") || status === "error") {
+    if ((!version && status === 'success') || status === 'error') {
       showError({
         statusCode: 404,
-        statusMessage: $t("package.not_found"),
-        message: $t("package.not_found_message"),
-      });
+        statusMessage: $t('package.not_found'),
+        message: $t('package.not_found_message'),
+      })
     }
   },
   { immediate: true },
-);
+)
 
 const {
   data: pkg,
   status,
   error,
-} = usePackage(packageName, () => resolvedVersion.value ?? requestedVersion.value);
+} = usePackage(packageName, () => resolvedVersion.value ?? requestedVersion.value)
 
-const { diff: sizeDiff } = useInstallSizeDiff(packageName, resolvedVersion, pkg, installSize);
+const { diff: sizeDiff } = useInstallSizeDiff(packageName, resolvedVersion, pkg, installSize)
 
 // Detect two hydration scenarios where the external _payload.json is missing:
 //
@@ -209,41 +209,41 @@ const { diff: sizeDiff } = useInstallSizeDiff(packageName, resolvedVersion, pkg,
 // 2. SSR-rendered HTML with missing payload: Content was rendered but the external _payload.json
 //    returned an ISR fallback.
 //    → Preserve the server-rendered DOM, don't flash to skeleton.
-const nuxtApp = useNuxtApp();
-const route = useRoute();
+const nuxtApp = useNuxtApp()
+const route = useRoute()
 // Gates template rendering only — data fetches intentionally still run.
 // immediate is set once at mount — skipped requests won't re-fire on navigation, leaving data permanently missing.
-const isVersionsRoute = computed(() => route.name === "package-versions");
+const isVersionsRoute = computed(() => route.name === 'package-versions')
 const hasEmptyPayload =
   import.meta.client &&
   nuxtApp.payload.serverRendered &&
-  !Object.keys(nuxtApp.payload.data ?? {}).length;
-const isSpaFallback = shallowRef(nuxtApp.isHydrating && hasEmptyPayload && !nuxtApp.payload.path);
+  !Object.keys(nuxtApp.payload.data ?? {}).length
+const isSpaFallback = shallowRef(nuxtApp.isHydrating && hasEmptyPayload && !nuxtApp.payload.path)
 const isHydratingWithServerContent = shallowRef(
   nuxtApp.isHydrating && hasEmptyPayload && nuxtApp.payload.path === route.path,
-);
-const hasServerContentOnly = shallowRef(hasEmptyPayload && nuxtApp.payload.path === route.path);
+)
+const hasServerContentOnly = shallowRef(hasEmptyPayload && nuxtApp.payload.path === route.path)
 
 // When we have server-rendered content but no payload data, capture the server
 // DOM before Vue's hydration replaces it. This lets us show the server-rendered
 // HTML as a static snapshot while data refetches, avoiding any visual flash.
 const serverRenderedHtml = shallowRef<string | null>(
   hasServerContentOnly.value
-    ? (document.getElementById("package-article")?.innerHTML ?? null)
+    ? (document.getElementById('package-article')?.innerHTML ?? null)
     : null,
-);
+)
 
 if (isSpaFallback.value || isHydratingWithServerContent.value) {
-  nuxtApp.hooks.hookOnce("app:suspense:resolve", () => {
-    isSpaFallback.value = false;
-    isHydratingWithServerContent.value = false;
-  });
+  nuxtApp.hooks.hookOnce('app:suspense:resolve', () => {
+    isSpaFallback.value = false
+    isHydratingWithServerContent.value = false
+  })
 }
 
-const displayVersion = computed(() => pkg.value?.requestedVersion ?? null);
+const displayVersion = computed(() => pkg.value?.requestedVersion ?? null)
 const versionSecurityMetadata = computed<PackageVersionInfo[]>(() => {
-  if (!pkg.value) return [];
-  if (pkg.value.securityVersions?.length) return pkg.value.securityVersions;
+  if (!pkg.value) return []
+  if (pkg.value.securityVersions?.length) return pkg.value.securityVersions
 
   return Object.entries(pkg.value.versions).map(([version, metadata]) => ({
     version,
@@ -251,20 +251,20 @@ const versionSecurityMetadata = computed<PackageVersionInfo[]>(() => {
     hasProvenance: !!metadata.hasProvenance,
     trustLevel: metadata.trustLevel,
     deprecated: metadata.deprecated,
-  }));
-});
+  }))
+})
 
 // Process package description
 const pkgDescription = useMarkdown(() => ({
-  text: pkg.value?.description ?? "",
-}));
+  text: pkg.value?.description ?? '',
+}))
 
 // Fetch dependency analysis (lazy, client-side)
 // This is the same composable used by PackageVulnerabilityTree and PackageDeprecatedTree
 const { data: vulnTree, status: vulnTreeStatus } = useDependencyAnalysis(
   packageName,
-  () => resolvedVersion.value ?? "",
-);
+  () => resolvedVersion.value ?? '',
+)
 
 const {
   data: provenanceData,
@@ -272,260 +272,212 @@ const {
   execute: fetchProvenance,
 } = useLazyFetch<ProvenanceDetails | null>(
   () => {
-    const v = displayVersion.value;
-    if (!v || !hasProvenance(v)) return "";
-    return `/api/registry/provenance/${packageName.value}/v/${v.version}`;
+    const v = displayVersion.value
+    if (!v || !hasProvenance(v)) return ''
+    return `/api/registry/provenance/${packageName.value}/v/${v.version}`
   },
   {
     default: () => null,
     server: false,
     immediate: false,
   },
-);
+)
 if (import.meta.client) {
   watch(
     displayVersion,
-    (v) => {
-      if (v && hasProvenance(v) && provenanceStatus.value === "idle") {
-        fetchProvenance();
+    v => {
+      if (v && hasProvenance(v) && provenanceStatus.value === 'idle') {
+        fetchProvenance()
       }
     },
     { immediate: true },
-  );
+  )
 }
 
-const isMounted = useMounted();
+const isMounted = useMounted()
 
 // Keep latestVersion for comparison (to show "(latest)" badge)
 const latestVersion = computed(() => {
-  if (!pkg.value) return null;
-  const latestTag = pkg.value["dist-tags"]?.latest;
-  if (!latestTag) return null;
-  return pkg.value.versions[latestTag] ?? null;
-});
+  if (!pkg.value) return null
+  const latestTag = pkg.value['dist-tags']?.latest
+  if (!latestTag) return null
+  return pkg.value.versions[latestTag] ?? null
+})
 
 const deprecationNotice = computed(() => {
-  if (!displayVersion.value?.deprecated) return null;
+  if (!displayVersion.value?.deprecated) return null
 
-  const isLatestDeprecated = !!latestVersion.value?.deprecated;
+  const isLatestDeprecated = !!latestVersion.value?.deprecated
 
   // If latest is deprecated, show "package deprecated"
   if (isLatestDeprecated) {
     return {
-      type: "package" as const,
+      type: 'package' as const,
       message: displayVersion.value.deprecated,
-    };
+    }
   }
 
   // Otherwise show "version deprecated"
-  return { type: "version" as const, message: displayVersion.value.deprecated };
-});
+  return { type: 'version' as const, message: displayVersion.value.deprecated }
+})
 
 const deprecationNoticeMessage = useMarkdown(() => ({
-  text: deprecationNotice.value?.message ?? "",
-}));
+  text: deprecationNotice.value?.message ?? '',
+}))
 
 const publishSecurityDowngrade = computed(() => {
-  const currentVersion = displayVersion.value?.version;
-  if (!currentVersion) return null;
-  return detectPublishSecurityDowngradeForVersion(versionSecurityMetadata.value, currentVersion);
-});
+  const currentVersion = displayVersion.value?.version
+  if (!currentVersion) return null
+  return detectPublishSecurityDowngradeForVersion(versionSecurityMetadata.value, currentVersion)
+})
 
 const installVersionOverride = computed(
   () => publishSecurityDowngrade.value?.trustedVersion ?? null,
-);
+)
 
 const downgradeFallbackInstallText = computed(() => {
-  const d = publishSecurityDowngrade.value;
-  if (!d?.trustedVersion) return null;
-  if (d.trustedTrustLevel === "provenance")
-    return $t("package.security_downgrade.fallback_install_provenance", {
+  const d = publishSecurityDowngrade.value
+  if (!d?.trustedVersion) return null
+  if (d.trustedTrustLevel === 'provenance')
+    return $t('package.security_downgrade.fallback_install_provenance', {
       version: d.trustedVersion,
-    });
-  if (d.trustedTrustLevel === "trustedPublisher")
-    return $t("package.security_downgrade.fallback_install_trustedPublisher", {
+    })
+  if (d.trustedTrustLevel === 'trustedPublisher')
+    return $t('package.security_downgrade.fallback_install_trustedPublisher', {
       version: d.trustedVersion,
-    });
-  return null;
-});
+    })
+  return null
+})
 
 const sizeTooltip = computed(() => {
   const chunks = [
     displayVersion.value &&
       displayVersion.value.dist.unpackedSize &&
-      $t("package.stats.size_tooltip.unpacked", {
+      $t('package.stats.size_tooltip.unpacked', {
         size: bytesFormatter.format(displayVersion.value.dist.unpackedSize),
       }),
     installSize.value &&
       installSize.value.dependencyCount &&
-      $t("package.stats.size_tooltip.total", {
+      $t('package.stats.size_tooltip.total', {
         size: bytesFormatter.format(installSize.value.totalSize),
         count: installSize.value.dependencyCount,
       }),
-  ];
-  return chunks.filter(Boolean).join("\n");
-});
+  ]
+  return chunks.filter(Boolean).join('\n')
+})
 
 const hasDependencies = computed(() => {
-  if (!displayVersion.value) return false;
-  const deps = displayVersion.value.dependencies;
-  const peerDeps = displayVersion.value.peerDependencies;
-  const optionalDeps = displayVersion.value.optionalDependencies;
+  if (!displayVersion.value) return false
+  const deps = displayVersion.value.dependencies
+  const peerDeps = displayVersion.value.peerDependencies
+  const optionalDeps = displayVersion.value.optionalDependencies
   return (
     (deps && Object.keys(deps).length > 0) ||
     (peerDeps && Object.keys(peerDeps).length > 0) ||
     (optionalDeps && Object.keys(optionalDeps).length > 0)
-  );
-});
+  )
+})
 
 // Vulnerability count for the stats banner
-const vulnCount = computed(() => vulnTree.value?.totalCounts.total ?? 0);
-const hasVulnerabilities = computed(() => vulnCount.value > 0);
+const vulnCount = computed(() => vulnTree.value?.totalCounts.total ?? 0)
+const hasVulnerabilities = computed(() => vulnCount.value > 0)
 
 // Total transitive dependencies count (from either vuln tree or install size)
 // Subtract 1 to exclude the root package itself
 const totalDepsCount = computed(() => {
   if (vulnTree.value) {
-    return vulnTree.value.totalPackages ? vulnTree.value.totalPackages - 1 : 0;
+    return vulnTree.value.totalPackages ? vulnTree.value.totalPackages - 1 : 0
   }
   if (installSize.value) {
-    return installSize.value.dependencyCount;
+    return installSize.value.dependencyCount
   }
-  return null;
-});
+  return null
+})
 
-const { repositoryUrl } = useRepositoryUrl(displayVersion);
+const { repositoryUrl } = useRepositoryUrl(displayVersion)
 
-const { repoRef } = useRepoMeta(repositoryUrl);
+const { repoRef } = useRepoMeta(repositoryUrl)
 
-const viewOnGitProvider = useViewOnGitProvider(() => repoRef.value?.provider);
+const viewOnGitProvider = useViewOnGitProvider(() => repoRef.value?.provider)
 
 // Check if a version has provenance/attestations
 // The dist object may have attestations that aren't in the base type
 function hasProvenance(version: PackumentVersion | null): boolean {
-  if (!version?.dist) return false;
-  const dist = version.dist as NpmVersionDist;
-  return !!dist.attestations;
+  if (!version?.dist) return false
+  const dist = version.dist as NpmVersionDist
+  return !!dist.attestations
 }
 
 // Get @types package name if available (non-deprecated)
 const typesPackageName = computed(() => {
-  if (!packageAnalysis.value) return null;
-  if (packageAnalysis.value.types.kind !== "@types") return null;
-  if (packageAnalysis.value.types.deprecated) return null;
-  return packageAnalysis.value.types.packageName;
-});
+  if (!packageAnalysis.value) return null
+  if (packageAnalysis.value.types.kind !== '@types') return null
+  if (packageAnalysis.value.types.deprecated) return null
+  return packageAnalysis.value.types.packageName
+})
 
 // Executable detection for run command
 const executableInfo = computed(() => {
-  if (!displayVersion.value || !pkg.value) return null;
-  return getExecutableInfo(pkg.value.name, displayVersion.value.bin);
-});
+  if (!displayVersion.value || !pkg.value) return null
+  return getExecutableInfo(pkg.value.name, displayVersion.value.bin)
+})
 
 // Detect if package is binary-only (show only execute commands, no install)
 const isBinaryOnly = computed(() => {
-  if (!displayVersion.value || !pkg.value) return false;
+  if (!displayVersion.value || !pkg.value) return false
   return isBinaryOnlyPackage({
     name: pkg.value.name,
     bin: displayVersion.value.bin,
     main: displayVersion.value.main,
     module: displayVersion.value.module,
     exports: displayVersion.value.exports,
-  });
-});
+  })
+})
 
 // Detect if package uses create-* naming convention
 const isCreatePkg = computed(() => {
-  if (!pkg.value) return false;
-  return isCreatePackage(pkg.value.name);
-});
+  if (!pkg.value) return false
+  return isCreatePackage(pkg.value.name)
+})
 
 // Get associated create-* package info (e.g., vite -> create-vite)
 const createPackageInfo = computed(() => {
-  if (!packageAnalysis.value?.createPackage) return null;
+  if (!packageAnalysis.value?.createPackage) return null
   // Don't show if deprecated
-  if (packageAnalysis.value.createPackage.deprecated) return null;
-  return packageAnalysis.value.createPackage;
-});
+  if (packageAnalysis.value.createPackage.deprecated) return null
+  return packageAnalysis.value.createPackage
+})
 
 // Canonical URL for this package page
 const canonicalUrl = computed(() => {
-  const base = `https://npmx.dev/package/${packageName.value}`;
-  return requestedVersion.value ? `${base}/v/${requestedVersion.value}` : base;
-});
+  const base = `https://npmx.dev/package/${packageName.value}`
+  return requestedVersion.value ? `${base}/v/${requestedVersion.value}` : base
+})
 
 // URL pattern for version selector - includes file path if present
 const versionUrlPattern = computed(
   () => `/package/${pkg.value?.name || packageName.value}/v/{version}`,
-);
+)
 
-const dependencyCount = computed(() => getDependencyCount(displayVersion.value));
+const dependencyCount = computed(() => getDependencyCount(displayVersion.value))
 
-const numberFormatter = useNumberFormatter();
-const bytesFormatter = useBytesFormatter();
+const numberFormatter = useNumberFormatter()
+const bytesFormatter = useBytesFormatter()
 
 useHead({
-  link: [{ rel: "canonical", href: canonicalUrl }],
-});
+  link: [{ rel: 'canonical', href: canonicalUrl }],
+})
 
 useSeoMeta({
-  title: () => (pkg.value?.name ? `${pkg.value.name} - npmx` : "Package - npmx"),
-  ogTitle: () => (pkg.value?.name ? `${pkg.value.name} - npmx` : "Package - npmx"),
-  twitterTitle: () => (pkg.value?.name ? `${pkg.value.name} - npmx` : "Package - npmx"),
-  description: () => pkg.value?.description ?? "",
-  ogDescription: () => pkg.value?.description ?? "",
-  twitterDescription: () => pkg.value?.description ?? "",
-});
+  title: () => (pkg.value?.name ? `${pkg.value.name} - npmx` : 'Package - npmx'),
+  ogTitle: () => (pkg.value?.name ? `${pkg.value.name} - npmx` : 'Package - npmx'),
+  twitterTitle: () => (pkg.value?.name ? `${pkg.value.name} - npmx` : 'Package - npmx'),
+  description: () => pkg.value?.description ?? '',
+  ogDescription: () => pkg.value?.description ?? '',
+  twitterDescription: () => pkg.value?.description ?? '',
+})
 
-const codeLink = computed((): RouteLocationRaw | null => {
-  if (pkg.value == null || resolvedVersion.value == null) {
-    return null;
-  }
-  const split = pkg.value.name.split("/");
-  return {
-    name: "code",
-    params: {
-      org: split.length === 2 ? split[0] : undefined,
-      packageName: split.length === 2 ? split[1]! : split[0]!,
-      version: resolvedVersion.value,
-      filePath: "",
-    },
-  };
-});
-
-const keyboardShortcuts = useKeyboardShortcutsPreference();
-
-onKeyStroke(
-  (e) => keyboardShortcuts.value && isKeyWithoutModifiers(e, ".") && !isEditableElement(e.target),
-  (e) => {
-    if (codeLink.value === null) return;
-    e.preventDefault();
-
-    navigateTo(codeLink.value);
-  },
-  { dedupe: true },
-);
-
-onKeyStroke(
-  (e) => keyboardShortcuts.value && isKeyWithoutModifiers(e, "d") && !isEditableElement(e.target),
-  (e) => {
-    if (!docsLink.value) return;
-    e.preventDefault();
-    navigateTo(docsLink.value);
-  },
-  { dedupe: true },
-);
-
-onKeyStroke(
-  (e) => keyboardShortcuts.value && isKeyWithoutModifiers(e, "c") && !isEditableElement(e.target),
-  (e) => {
-    if (!pkg.value) return;
-    e.preventDefault();
-    router.push({ name: "compare", query: { packages: pkg.value.name } });
-  },
-);
-
-const showSkeleton = shallowRef(false);
+const showSkeleton = shallowRef(false)
 </script>
 
 <template>
@@ -588,7 +540,7 @@ const showSkeleton = shallowRef(false);
                 <span v-html="pkgDescription" />
               </p>
               <p v-else class="text-fg-subtle text-base m-0 italic">
-                {{ $t("package.no_description") }}
+                {{ $t('package.no_description') }}
               </p>
             </div>
 
@@ -608,16 +560,16 @@ const showSkeleton = shallowRef(false);
           >
             <h2 class="font-medium mb-2">
               {{
-                deprecationNotice.type === "package"
-                  ? $t("package.deprecation.package")
-                  : $t("package.deprecation.version")
+                deprecationNotice.type === 'package'
+                  ? $t('package.deprecation.package')
+                  : $t('package.deprecation.version')
               }}
             </h2>
             <p v-if="deprecationNoticeMessage" class="text-base m-0">
               <span v-html="deprecationNoticeMessage" />
             </p>
             <p v-else class="text-base m-0 italic">
-              {{ $t("package.deprecation.no_reason") }}
+              {{ $t('package.deprecation.no_reason') }}
             </p>
           </div>
 
@@ -627,17 +579,17 @@ const showSkeleton = shallowRef(false);
           >
             <div class="space-y-1 sm:col-span-2">
               <dt class="text-xs text-fg-subtle uppercase tracking-wider">
-                {{ $t("package.stats.license") }}
+                {{ $t('package.stats.license') }}
               </dt>
               <dd class="font-mono text-sm text-fg">
                 <LicenseDisplay v-if="pkg.license" :license="pkg.license" />
-                <span v-else>{{ $t("package.license.none") }}</span>
+                <span v-else>{{ $t('package.license.none') }}</span>
               </dd>
             </div>
 
             <div class="space-y-1 sm:col-span-2">
               <dt class="text-xs text-fg-subtle uppercase tracking-wider">
-                {{ $t("package.stats.deps") }}
+                {{ $t('package.stats.deps') }}
               </dt>
               <dd class="font-mono text-sm text-fg flex items-center justify-start gap-2">
                 <span class="flex items-center gap-1">
@@ -676,7 +628,7 @@ const showSkeleton = shallowRef(false);
                     :title="$t('package.stats.view_dependency_graph')"
                     classicon="i-lucide:network -rotate-90"
                   >
-                    <span class="sr-only">{{ $t("package.stats.view_dependency_graph") }}</span>
+                    <span class="sr-only">{{ $t('package.stats.view_dependency_graph') }}</span>
                   </LinkBase>
 
                   <LinkBase
@@ -686,7 +638,7 @@ const showSkeleton = shallowRef(false);
                     :title="$t('package.stats.inspect_dependency_tree')"
                     classicon="i-lucide:table"
                   >
-                    <span class="sr-only">{{ $t("package.stats.inspect_dependency_tree") }}</span>
+                    <span class="sr-only">{{ $t('package.stats.inspect_dependency_tree') }}</span>
                   </LinkBase>
                 </ButtonGroup>
               </dd>
@@ -694,7 +646,7 @@ const showSkeleton = shallowRef(false);
 
             <div class="space-y-1 sm:col-span-3">
               <dt class="text-xs text-fg-subtle uppercase tracking-wider flex items-center gap-1">
-                {{ $t("package.stats.install_size") }}
+                {{ $t('package.stats.install_size') }}
                 <TooltipApp v-if="sizeTooltip" :text="sizeTooltip" interactive>
                   <span
                     tabindex="0"
@@ -736,7 +688,7 @@ const showSkeleton = shallowRef(false);
             <!-- Vulnerabilities count -->
             <div class="space-y-1 sm:col-span-2">
               <dt class="text-xs text-fg-subtle uppercase tracking-wider">
-                {{ $t("package.stats.vulns") }}
+                {{ $t('package.stats.vulns') }}
               </dt>
               <dd class="font-mono text-sm text-fg">
                 <span
@@ -771,7 +723,7 @@ const showSkeleton = shallowRef(false);
                   })
                 "
               >
-                {{ $t("package.stats.published") }}
+                {{ $t('package.stats.published') }}
               </dt>
               <dd class="font-mono text-sm text-fg">
                 <DateTime :datetime="pkg.time[resolvedVersion]!" date-style="medium" />
@@ -793,7 +745,7 @@ const showSkeleton = shallowRef(false);
         <section v-if="isBinaryOnly" class="scroll-mt-20" :class="$style.areaInstall">
           <div class="flex flex-wrap items-center justify-between mb-3">
             <h2 id="run-heading" class="text-xs text-fg-subtle uppercase tracking-wider">
-              {{ $t("package.run.title") }}
+              {{ $t('package.run.title') }}
             </h2>
             <!-- Package manager dropdown -->
             <PackageManagerSelect />
@@ -815,7 +767,7 @@ const showSkeleton = shallowRef(false);
               class="group text-xs text-fg-subtle uppercase tracking-wider"
             >
               <LinkBase to="#get-started">
-                {{ $t("package.get_started.title") }}
+                {{ $t('package.get_started.title') }}
               </LinkBase>
             </h2>
             <!-- Package manager dropdown + Download button -->
@@ -836,7 +788,7 @@ const showSkeleton = shallowRef(false);
             >
               <h3 class="m-0 flex items-center gap-2 font-mono text-sm font-medium">
                 <span class="i-lucide:circle-alert w-4 h-4 shrink-0" aria-hidden="true" />
-                {{ $t("package.security_downgrade.title") }}
+                {{ $t('package.security_downgrade.title') }}
               </h3>
               <p class="mt-2 mb-0 text-sm">
                 <i18n-t
@@ -854,7 +806,7 @@ const showSkeleton = shallowRef(false);
                       target="_blank"
                       rel="noopener noreferrer"
                       class="inline-flex items-center gap-1 rounded-sm underline underline-offset-4 decoration-amber-600/60 dark:decoration-amber-400/50 hover:decoration-fg focus-visible:decoration-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors"
-                      >{{ $t("package.security_downgrade.provenance_link_text")
+                      >{{ $t('package.security_downgrade.provenance_link_text')
                       }}<span class="i-lucide:external-link w-3 h-3" aria-hidden="true"
                     /></a>
                   </template>
@@ -874,7 +826,7 @@ const showSkeleton = shallowRef(false);
                       target="_blank"
                       rel="noopener noreferrer"
                       class="inline-flex items-center gap-1 rounded-sm underline underline-offset-4 decoration-amber-600/60 dark:decoration-amber-400/50 hover:decoration-fg focus-visible:decoration-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors"
-                      >{{ $t("package.security_downgrade.trusted_publishing_link_text")
+                      >{{ $t('package.security_downgrade.trusted_publishing_link_text')
                       }}<span class="i-lucide:external-link w-3 h-3" aria-hidden="true"
                     /></a>
                   </template>
@@ -894,7 +846,7 @@ const showSkeleton = shallowRef(false);
                       target="_blank"
                       rel="noopener noreferrer"
                       class="inline-flex items-center gap-1 rounded-sm underline underline-offset-4 decoration-amber-600/60 dark:decoration-amber-400/50 hover:decoration-fg focus-visible:decoration-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors"
-                      >{{ $t("package.security_downgrade.provenance_link_text")
+                      >{{ $t('package.security_downgrade.provenance_link_text')
                       }}<span class="i-lucide:external-link w-3 h-3" aria-hidden="true"
                     /></a>
                   </template>
@@ -904,12 +856,12 @@ const showSkeleton = shallowRef(false);
                       target="_blank"
                       rel="noopener noreferrer"
                       class="inline-flex items-center gap-1 rounded-sm underline underline-offset-4 decoration-amber-600/60 dark:decoration-amber-400/50 hover:decoration-fg focus-visible:decoration-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/70 transition-colors"
-                      >{{ $t("package.security_downgrade.trusted_publishing_link_text")
+                      >{{ $t('package.security_downgrade.trusted_publishing_link_text')
                       }}<span class="i-lucide:external-link w-3 h-3" aria-hidden="true"
                     /></a>
                   </template>
                 </i18n-t>
-                {{ " " }}
+                {{ ' ' }}
                 <template v-if="downgradeFallbackInstallText">
                   {{ downgradeFallbackInstallText }}
                 </template>
@@ -1033,7 +985,7 @@ const showSkeleton = shallowRef(false);
           >
             <h2 id="readme-heading" class="group text-fg-subtle uppercase font-medium">
               <LinkBase to="#readme">
-                {{ $t("package.readme.title") }}
+                {{ $t('package.readme.title') }}
               </LinkBase>
             </h2>
             <div class="flex gap-2">
@@ -1053,7 +1005,7 @@ const showSkeleton = shallowRef(false);
                   "
                   :classicon="copiedReadme ? 'i-lucide:check' : 'i-simple-icons:markdown'"
                 >
-                  {{ copiedReadme ? $t("common.copied") : $t("common.copy") }}
+                  {{ copiedReadme ? $t('common.copied') : $t('common.copy') }}
                 </ButtonBase>
               </TooltipApp>
               <ReadmeTocDropdown
@@ -1067,7 +1019,7 @@ const showSkeleton = shallowRef(false);
           <!-- eslint-disable vue/no-v-html -- HTML is sanitized server-side -->
           <Readme v-if="readmeData?.html" :html="readmeData.html" />
           <p v-else class="text-fg-muted italic">
-            {{ $t("package.readme.no_readme") }}
+            {{ $t('package.readme.no_readme') }}
             <a
               v-if="repositoryUrl"
               :href="repositoryUrl"
@@ -1089,7 +1041,7 @@ const showSkeleton = shallowRef(false);
               class="mt-8 flex items-center gap-2 text-fg-subtle text-sm"
             >
               <span class="i-svg-spinners:ring-resize w-4 h-4" aria-hidden="true" />
-              <span>{{ $t("package.provenance_section.title") }}…</span>
+              <span>{{ $t('package.provenance_section.title') }}…</span>
             </div>
             <PackageProvenanceSection
               v-else-if="provenanceData"
@@ -1102,7 +1054,7 @@ const showSkeleton = shallowRef(false);
               class="mt-8 flex items-center gap-2 text-fg-subtle text-sm"
             >
               <span class="i-lucide:circle-alert w-4 h-4" aria-hidden="true" />
-              <span>{{ $t("package.provenance_section.error_loading") }}</span>
+              <span>{{ $t('package.provenance_section.error_loading') }}</span>
             </div>
           </section>
         </section>
@@ -1116,13 +1068,13 @@ const showSkeleton = shallowRef(false);
       class="flex flex-col items-center py-20 text-center container w-full"
     >
       <h1 class="font-mono text-2xl font-medium mb-4">
-        {{ $t("package.not_found") }}
+        {{ $t('package.not_found') }}
       </h1>
       <p class="text-fg-muted mb-8">
-        {{ error?.message ?? $t("package.not_found_message") }}
+        {{ error?.message ?? $t('package.not_found_message') }}
       </p>
       <LinkBase variant="button-secondary" :to="{ name: 'index' }">{{
-        $t("common.go_back_home")
+        $t('common.go_back_home')
       }}</LinkBase>
     </div>
   </main>
@@ -1138,11 +1090,11 @@ const showSkeleton = shallowRef(false);
   /* Mobile: single column, sidebar above readme */
   grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "details"
-    "install"
-    "vulns"
-    "sidebar"
-    "readme";
+    'details'
+    'install'
+    'vulns'
+    'sidebar'
+    'readme';
 }
 
 /* Tablet/medium: install/vulns full width, readme+sidebar side by side */
@@ -1150,10 +1102,10 @@ const showSkeleton = shallowRef(false);
   .packagePage {
     grid-template-columns: 2fr 1fr;
     grid-template-areas:
-      "details details"
-      "install sidebar"
-      "vulns   sidebar"
-      "readme  sidebar";
+      'details details'
+      'install sidebar'
+      'vulns   sidebar'
+      'readme  sidebar';
     grid-template-rows: auto auto auto 1fr;
   }
 }
@@ -1163,10 +1115,10 @@ const showSkeleton = shallowRef(false);
   .packagePage {
     grid-template-columns: 1fr 20rem;
     grid-template-areas:
-      "details sidebar"
-      "install sidebar"
-      "vulns   sidebar"
-      "readme  sidebar";
+      'details sidebar'
+      'install sidebar'
+      'vulns   sidebar'
+      'readme  sidebar';
     grid-template-rows: auto auto auto 1fr;
   }
 }

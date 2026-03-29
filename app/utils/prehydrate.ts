@@ -40,6 +40,11 @@ export function initPreferencesOnPrehydrate() {
         'preferredBackgroundTheme',
         'selectedLocale',
         'relativeDates',
+        'includeTypesInInstall',
+        'hidePlatformPackages',
+        'searchProvider',
+        'instantSearch',
+        'keyboardShortcuts',
       ] as const
 
       const keysToMigrate = migratableKeys.filter(

@@ -7,7 +7,7 @@ type ShortcutTargetFactory = () => ShortcutTarget
 const registry = new Map<string, ShortcutTargetFactory[]>()
 
 export function initKeyShortcuts() {
-  const keyboardShortcuts = useKeyboardShortcuts()
+  const keyboardShortcuts = useKeyboardShortcutsPreference()
 
   onKeyStroke(
     e => !e.repeat && keyboardShortcuts.value && !isEditableElement(e.target),
@@ -19,7 +19,7 @@ export function initKeyShortcuts() {
         const target = getTarget()
         if (!target) return
         e.preventDefault()
-        navigateTo(target)
+        void navigateTo(target)
         return
       }
     },

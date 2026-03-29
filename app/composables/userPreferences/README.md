@@ -108,8 +108,10 @@ The preference will automatically persist to localStorage and sync to the server
 ## Architecture overview
 
 ```
-useUserPreferencesProvider        ← singleton, manages localStorage + sync lifecycle
-  ├── useUserPreferencesSync      ← client-only: debounced server writes, route guard, sendBeacon
+useUserPreferencesProvider        ← cached singleton, manages localStorage + sync lifecycle
+  ├── createProvider()            ← internal: sets up localStorage ref + lazy sync state
+  │     └── initSync()            ← resolves useAtproto() + useUserPreferencesSync() lazily
+  ├── useUserPreferencesSync      ← client-only: receives isAuthenticated ref via DI
   ├── useUserPreferencesState     ← read/write access to reactive ref (used by all composables above)
   └── preferences-merge.ts        ← merge logic for first-login vs returning-user scenarios
 
@@ -121,8 +123,9 @@ useLocalStorageHashProvider       ← generic localStorage + defu provider (used
 ### Sync flow (authenticated users)
 
 1. `preferences-sync.client.ts` plugin calls `initSync()` on app boot
-2. Preferences are loaded from server and merged with local state
-3. A deep watcher on the preferences ref triggers `scheduleSync()` on every change
-4. `scheduleSync()` debounces for 2 seconds, then pushes to `PUT /api/user/preferences`
-5. On route navigation, `router.beforeEach` flushes any pending sync
-6. On tab close, `sendBeacon` fires the latest preferences via `POST /api/user/preferences`
+2. `initSync()` lazily resolves `useAtproto()` and `useUserPreferencesSync(isAuthenticated)` — auth is not fetched at provider construction time
+3. Preferences are loaded from server and merged with local state
+4. A deep watcher on the preferences ref triggers `scheduleSync()` on every change
+5. `scheduleSync()` debounces for 2 seconds, then pushes to `PUT /api/user/preferences`
+6. On route navigation, `router.beforeEach` flushes any pending sync
+7. On tab close, `sendBeacon` fires the latest preferences via `POST /api/user/preferences`

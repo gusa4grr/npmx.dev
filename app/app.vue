@@ -22,7 +22,7 @@ const localeMap = locales.value.reduce(
 )
 
 const darkMode = usePreferredDark()
-const colorMode = useColorMode()
+const { colorMode } = useColorModePreference()
 const colorScheme = computed(() => {
   return {
     system: darkMode ? 'dark light' : 'light dark',
