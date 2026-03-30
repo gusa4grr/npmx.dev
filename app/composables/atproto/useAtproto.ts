@@ -1,12 +1,12 @@
-import type { PublicUserSessionSchema } from "#shared/schemas/publicUserSession";
-import type { InferOutput } from "valibot";
+import type { PublicUserSessionSchema } from '#shared/schemas/publicUserSession'
+import type { InferOutput } from 'valibot'
 
-type User = InferOutput<typeof PublicUserSessionSchema>;
+type User = InferOutput<typeof PublicUserSessionSchema>
 
 export interface UseAtprotoReturn {
-  user: Ref<User | null | undefined>;
-  pending: Ref<boolean>;
-  logout: () => Promise<void>;
+  user: Ref<User | null | undefined>
+  pending: Ref<boolean>
+  logout: () => Promise<void>
 }
 
 declare global {

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { Theme as VueDataUiTheme, VueUiXyConfig, VueUiXyDatasetItem } from "vue-data-ui";
-import { VueUiXy } from "vue-data-ui/vue-ui-xy";
-import { useDebounceFn, useElementSize, useTimeoutFn } from "@vueuse/core";
-import { useCssVariables } from "~/composables/useColors";
-import { OKLCH_NEUTRAL_FALLBACK, transparentizeOklch, lightenOklch } from "~/utils/colors";
-import { getFrameworkColor, isListedFramework } from "~/utils/frameworks";
-import { drawNpmxLogoAndTaglineWatermark } from "~/composables/useChartWatermark";
-import type { RepoRef } from "#shared/utils/git-providers";
+import type { Theme as VueDataUiTheme, VueUiXyConfig, VueUiXyDatasetItem } from 'vue-data-ui'
+import { VueUiXy } from 'vue-data-ui/vue-ui-xy'
+import { useDebounceFn, useElementSize, useTimeoutFn } from '@vueuse/core'
+import { useCssVariables } from '~/composables/useColors'
+import { OKLCH_NEUTRAL_FALLBACK, transparentizeOklch, lightenOklch } from '~/utils/colors'
+import { getFrameworkColor, isListedFramework } from '~/utils/frameworks'
+import { drawNpmxLogoAndTaglineWatermark } from '~/composables/useChartWatermark'
+import type { RepoRef } from '#shared/utils/git-providers'
 import type {
   ChartTimeGranularity,
   DailyDataPoint,
@@ -16,135 +16,135 @@ import type {
   MonthlyDataPoint,
   WeeklyDataPoint,
   YearlyDataPoint,
-} from "~/types/chart";
-import { DATE_INPUT_MAX } from "~/utils/input";
+} from '~/types/chart'
+import { DATE_INPUT_MAX } from '~/utils/input'
 import {
   applyDataPipeline,
   endDateOnlyToUtcMs,
   DEFAULT_PREDICTION_POINTS,
-} from "~/utils/chart-data-prediction";
-import { applyBlocklistCorrection, getAnomaliesForPackages } from "~/utils/download-anomalies";
-import { copyAltTextForTrendLineChart, sanitise, loadFile, applyEllipsis } from "~/utils/charts";
+} from '~/utils/chart-data-prediction'
+import { applyBlocklistCorrection, getAnomaliesForPackages } from '~/utils/download-anomalies'
+import { copyAltTextForTrendLineChart, sanitise, loadFile, applyEllipsis } from '~/utils/charts'
 
-import("vue-data-ui/style.css");
+import('vue-data-ui/style.css')
 
 const props = withDefaults(
   defineProps<{
     // For single package downloads history
-    weeklyDownloads?: WeeklyDataPoint[];
-    inModal?: boolean;
+    weeklyDownloads?: WeeklyDataPoint[]
+    inModal?: boolean
 
     /**
      * Backward compatible single package mode.
      * Used when `weeklyDownloads` is provided.
      */
-    packageName?: string;
+    packageName?: string
 
     /**
      * Multi-package mode.
      * Used when `weeklyDownloads` is not provided.
      */
-    packageNames?: string[];
-    repoRef?: RepoRef | null | undefined;
-    createdIso?: string | null;
+    packageNames?: string[]
+    repoRef?: RepoRef | null | undefined
+    createdIso?: string | null
 
     /** When true, shows facet selector (e.g. Downloads / Likes). */
-    showFacetSelector?: boolean;
-    permalink?: boolean;
+    showFacetSelector?: boolean
+    permalink?: boolean
   }>(),
   {
     permalink: false,
   },
-);
+)
 
-const { locale } = useI18n();
-const { accentColors, selectedAccentColor } = useAccentColor();
-const { localSettings } = useUserLocalSettings();
-const { copy, copied } = useClipboard();
+const { locale } = useI18n()
+const { accentColors, selectedAccentColor } = useAccentColor()
+const { localSettings } = useUserLocalSettings()
+const { copy, copied } = useClipboard()
 
-const { colorMode } = useColorModePreference();
-const resolvedMode = shallowRef<"light" | "dark">("light");
-const rootEl = shallowRef<HTMLElement | null>(null);
-const isZoomed = shallowRef(false);
+const { colorMode } = useColorModePreference()
+const resolvedMode = shallowRef<'light' | 'dark'>('light')
+const rootEl = shallowRef<HTMLElement | null>(null)
+const isZoomed = shallowRef(false)
 
 function setIsZoom({ isZoom }: { isZoom: boolean }) {
-  isZoomed.value = isZoom;
+  isZoomed.value = isZoom
 }
 
-const { width } = useElementSize(rootEl);
+const { width } = useElementSize(rootEl)
 
-const compactNumberFormatter = useCompactNumberFormatter();
+const compactNumberFormatter = useCompactNumberFormatter()
 
 onMounted(async () => {
-  rootEl.value = document.documentElement;
-  resolvedMode.value = colorMode.value === "dark" ? "dark" : "light";
+  rootEl.value = document.documentElement
+  resolvedMode.value = colorMode.value === 'dark' ? 'dark' : 'light'
 
-  initDateRangeFromWeekly();
-  initDateRangeForMultiPackageWeekly52();
-  initDateRangeFallbackClient();
+  initDateRangeFromWeekly()
+  initDateRangeForMultiPackageWeekly52()
+  initDateRangeFallbackClient()
 
-  await nextTick();
-  isMounted.value = true;
+  await nextTick()
+  isMounted.value = true
 
-  loadMetric(selectedMetric.value);
-});
+  loadMetric(selectedMetric.value)
+})
 
 const { colors } = useCssVariables(
   [
-    "--bg",
-    "--fg",
-    "--bg-subtle",
-    "--bg-elevated",
-    "--fg-subtle",
-    "--fg-muted",
-    "--border",
-    "--border-subtle",
+    '--bg',
+    '--fg',
+    '--bg-subtle',
+    '--bg-elevated',
+    '--fg-subtle',
+    '--fg-muted',
+    '--border',
+    '--border-subtle',
   ],
   {
     element: rootEl,
     watchHtmlAttributes: true,
     watchResize: false,
   },
-);
+)
 
 watch(
   () => colorMode.value,
-  (value) => {
-    resolvedMode.value = value === "dark" ? "dark" : "light";
+  value => {
+    resolvedMode.value = value === 'dark' ? 'dark' : 'light'
   },
-  { flush: "sync" },
-);
+  { flush: 'sync' },
+)
 
-const isDarkMode = computed(() => resolvedMode.value === "dark");
+const isDarkMode = computed(() => resolvedMode.value === 'dark')
 
 const accentColorValueById = computed<Record<string, string>>(() => {
-  const map: Record<string, string> = {};
+  const map: Record<string, string> = {}
   for (const item of accentColors.value) {
-    map[item.id] = item.value;
+    map[item.id] = item.value
   }
-  return map;
-});
+  return map
+})
 
 const accent = computed(() => {
-  const id = selectedAccentColor.value;
+  const id = selectedAccentColor.value
   return id
     ? (accentColorValueById.value[id] ?? colors.value.fgSubtle ?? OKLCH_NEUTRAL_FALLBACK)
-    : (colors.value.fgSubtle ?? OKLCH_NEUTRAL_FALLBACK);
-});
+    : (colors.value.fgSubtle ?? OKLCH_NEUTRAL_FALLBACK)
+})
 
 const watermarkColors = computed(() => ({
   fg: colors.value.fg ?? OKLCH_NEUTRAL_FALLBACK,
   bg: colors.value.bg ?? OKLCH_NEUTRAL_FALLBACK,
   fgSubtle: colors.value.fgSubtle ?? OKLCH_NEUTRAL_FALLBACK,
-}));
+}))
 
-const mobileBreakpointWidth = 640;
-const isMobile = computed(() => width.value > 0 && width.value < mobileBreakpointWidth);
+const mobileBreakpointWidth = 640
+const isMobile = computed(() => width.value > 0 && width.value < mobileBreakpointWidth)
 
-const DEFAULT_GRANULARITY: ChartTimeGranularity = "weekly";
+const DEFAULT_GRANULARITY: ChartTimeGranularity = 'weekly'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
+  return typeof value === 'object' && value !== null
 }
 
 function isWeeklyDataset(data: unknown): data is WeeklyDataPoint[] {
@@ -152,37 +152,37 @@ function isWeeklyDataset(data: unknown): data is WeeklyDataPoint[] {
     Array.isArray(data) &&
     data.length > 0 &&
     isRecord(data[0]) &&
-    "weekStart" in data[0] &&
-    "weekEnd" in data[0] &&
-    "value" in data[0]
-  );
+    'weekStart' in data[0] &&
+    'weekEnd' in data[0] &&
+    'value' in data[0]
+  )
 }
 function isDailyDataset(data: unknown): data is DailyDataPoint[] {
   return (
     Array.isArray(data) &&
     data.length > 0 &&
     isRecord(data[0]) &&
-    "day" in data[0] &&
-    "value" in data[0]
-  );
+    'day' in data[0] &&
+    'value' in data[0]
+  )
 }
 function isMonthlyDataset(data: unknown): data is MonthlyDataPoint[] {
   return (
     Array.isArray(data) &&
     data.length > 0 &&
     isRecord(data[0]) &&
-    "month" in data[0] &&
-    "value" in data[0]
-  );
+    'month' in data[0] &&
+    'value' in data[0]
+  )
 }
 function isYearlyDataset(data: unknown): data is YearlyDataPoint[] {
   return (
     Array.isArray(data) &&
     data.length > 0 &&
     isRecord(data[0]) &&
-    "year" in data[0] &&
-    "value" in data[0]
-  );
+    'year' in data[0] &&
+    'value' in data[0]
+  )
 }
 
 /**
@@ -213,48 +213,48 @@ function formatXyDataset(
   dataset: EvolutionData,
   seriesName: string,
 ): { dataset: VueUiXyDatasetItem[] | null; dates: number[] } {
-  const lightColor = isDarkMode.value ? lightenOklch(accent.value, 0.618) : undefined;
+  const lightColor = isDarkMode.value ? lightenOklch(accent.value, 0.618) : undefined
 
   // Subtle path gradient applied in dark mode only
-  const temperatureColors = lightColor ? [lightColor, accent.value] : undefined;
+  const temperatureColors = lightColor ? [lightColor, accent.value] : undefined
 
   const datasetItem: VueUiXyDatasetItem = {
     name: applyEllipsis(seriesName, 32),
-    type: "line",
-    series: dataset.map((d) => d.value),
+    type: 'line',
+    series: dataset.map(d => d.value),
     color: accent.value,
     temperatureColors,
     useArea: true,
     dashIndices: dataset
       .map((item, index) => (item.hasAnomaly ? index : -1))
-      .filter((index) => index !== -1),
-  };
+      .filter(index => index !== -1),
+  }
 
-  if (selectedGranularity === "weekly" && isWeeklyDataset(dataset)) {
+  if (selectedGranularity === 'weekly' && isWeeklyDataset(dataset)) {
     return {
       dataset: [datasetItem],
-      dates: dataset.map((d) => d.timestampEnd),
-    };
+      dates: dataset.map(d => d.timestampEnd),
+    }
   }
-  if (selectedGranularity === "daily" && isDailyDataset(dataset)) {
+  if (selectedGranularity === 'daily' && isDailyDataset(dataset)) {
     return {
       dataset: [datasetItem],
-      dates: dataset.map((d) => d.timestamp),
-    };
+      dates: dataset.map(d => d.timestamp),
+    }
   }
-  if (selectedGranularity === "monthly" && isMonthlyDataset(dataset)) {
+  if (selectedGranularity === 'monthly' && isMonthlyDataset(dataset)) {
     return {
       dataset: [datasetItem],
-      dates: dataset.map((d) => d.timestamp),
-    };
+      dates: dataset.map(d => d.timestamp),
+    }
   }
-  if (selectedGranularity === "yearly" && isYearlyDataset(dataset)) {
+  if (selectedGranularity === 'yearly' && isYearlyDataset(dataset)) {
     return {
       dataset: [datasetItem],
-      dates: dataset.map((d) => d.timestamp),
-    };
+      dates: dataset.map(d => d.timestamp),
+    }
   }
-  return { dataset: null, dates: [] };
+  return { dataset: null, dates: [] }
 }
 
 /**
@@ -285,40 +285,40 @@ function extractSeriesPoints(
   selectedGranularity: ChartTimeGranularity,
   dataset: EvolutionData,
 ): Array<{ timestamp: number; value: number; hasAnomaly: boolean }> {
-  if (selectedGranularity === "weekly" && isWeeklyDataset(dataset)) {
-    return dataset.map((d) => ({
+  if (selectedGranularity === 'weekly' && isWeeklyDataset(dataset)) {
+    return dataset.map(d => ({
       timestamp: d.timestampEnd,
       value: d.value,
       hasAnomaly: !!d.hasAnomaly,
-    }));
+    }))
   }
   if (
-    (selectedGranularity === "daily" && isDailyDataset(dataset)) ||
-    (selectedGranularity === "monthly" && isMonthlyDataset(dataset)) ||
-    (selectedGranularity === "yearly" && isYearlyDataset(dataset))
+    (selectedGranularity === 'daily' && isDailyDataset(dataset)) ||
+    (selectedGranularity === 'monthly' && isMonthlyDataset(dataset)) ||
+    (selectedGranularity === 'yearly' && isYearlyDataset(dataset))
   ) {
     return (dataset as Array<{ timestamp: number; value: number; hasAnomaly?: boolean }>).map(
-      (d) => ({
+      d => ({
         timestamp: d.timestamp,
         value: d.value,
         hasAnomaly: !!d.hasAnomaly,
       }),
-    );
+    )
   }
-  return [];
+  return []
 }
 
 function toIsoDateOnly(value: string): string {
-  return value.slice(0, 10);
+  return value.slice(0, 10)
 }
 function isValidIsoDateOnly(value: string): boolean {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value);
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
 }
 function safeMin(a: string, b: string): string {
-  return a.localeCompare(b) <= 0 ? a : b;
+  return a.localeCompare(b) <= 0 ? a : b
 }
 function safeMax(a: string, b: string): string {
-  return a.localeCompare(b) >= 0 ? a : b;
+  return a.localeCompare(b) >= 0 ? a : b
 }
 
 /**
@@ -326,101 +326,101 @@ function safeMax(a: string, b: string): string {
  * packageNames has entries, and packageName is not set.
  */
 const isMultiPackageMode = computed(() => {
-  const names = (props.packageNames ?? []).map((n) => String(n).trim()).filter(Boolean);
-  const single = String(props.packageName ?? "").trim();
-  return names.length > 0 && !single;
-});
+  const names = (props.packageNames ?? []).map(n => String(n).trim()).filter(Boolean)
+  const single = String(props.packageName ?? '').trim()
+  return names.length > 0 && !single
+})
 
 const effectivePackageNames = computed<string[]>(() => {
   if (isMultiPackageMode.value)
-    return (props.packageNames ?? []).map((n) => String(n).trim()).filter(Boolean);
-  const single = String(props.packageName ?? "").trim();
-  return single ? [single] : [];
-});
+    return (props.packageNames ?? []).map(n => String(n).trim()).filter(Boolean)
+  const single = String(props.packageName ?? '').trim()
+  return single ? [single] : []
+})
 
 const {
   fetchPackageDownloadEvolution,
   fetchPackageLikesEvolution,
   fetchRepoContributorsEvolution,
   fetchRepoRefsForPackages,
-} = useCharts();
+} = useCharts()
 
-const repoRefsByPackage = shallowRef<Record<string, RepoRef | null>>({});
-const repoRefsRequestToken = shallowRef(0);
+const repoRefsByPackage = shallowRef<Record<string, RepoRef | null>>({})
+const repoRefsRequestToken = shallowRef(0)
 
 watch(
   () => effectivePackageNames.value,
-  async (names) => {
-    if (!import.meta.client) return;
+  async names => {
+    if (!import.meta.client) return
     if (!isMultiPackageMode.value) {
-      repoRefsByPackage.value = {};
-      return;
+      repoRefsByPackage.value = {}
+      return
     }
-    const currentToken = ++repoRefsRequestToken.value;
-    const refs = await fetchRepoRefsForPackages(names);
-    if (currentToken !== repoRefsRequestToken.value) return;
-    repoRefsByPackage.value = refs;
+    const currentToken = ++repoRefsRequestToken.value
+    const refs = await fetchRepoRefsForPackages(names)
+    if (currentToken !== repoRefsRequestToken.value) return
+    repoRefsByPackage.value = refs
   },
   { immediate: true },
-);
+)
 
-const selectedGranularity = usePermalink<ChartTimeGranularity>("granularity", DEFAULT_GRANULARITY, {
+const selectedGranularity = usePermalink<ChartTimeGranularity>('granularity', DEFAULT_GRANULARITY, {
   permanent: props.permalink,
-});
+})
 
-const displayedGranularity = shallowRef<ChartTimeGranularity>(DEFAULT_GRANULARITY);
+const displayedGranularity = shallowRef<ChartTimeGranularity>(DEFAULT_GRANULARITY)
 
 const isEndDateOnPeriodEnd = computed(() => {
-  const g = selectedGranularity.value;
+  const g = selectedGranularity.value
 
-  const iso = String(endDate.value ?? "").slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const iso = String(endDate.value ?? '').slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false
 
-  const [year, month, day] = iso.split("-").map(Number);
-  if (!year || !month || !day) return false;
+  const [year, month, day] = iso.split('-').map(Number)
+  if (!year || !month || !day) return false
 
-  if (g === "daily") return true; // every day is a complete period
+  if (g === 'daily') return true // every day is a complete period
 
-  if (g === "weekly") {
+  if (g === 'weekly') {
     // The last week bucket is complete when the range length is divisible by 7
-    const startIso = String(startDate.value ?? "").slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(startIso)) return false;
-    const startMs = Date.UTC(...(startIso.split("-").map(Number) as [number, number, number]));
-    const endMs = Date.UTC(year, month - 1, day);
-    const totalDays = Math.floor((endMs - startMs) / 86400000) + 1;
-    return totalDays % 7 === 0;
+    const startIso = String(startDate.value ?? '').slice(0, 10)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startIso)) return false
+    const startMs = Date.UTC(...(startIso.split('-').map(Number) as [number, number, number]))
+    const endMs = Date.UTC(year, month - 1, day)
+    const totalDays = Math.floor((endMs - startMs) / 86400000) + 1
+    return totalDays % 7 === 0
   }
 
   // Monthly: endDate is the last day of its month (UTC)
-  if (g === "monthly") {
-    const lastDayOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-    return day === lastDayOfMonth;
+  if (g === 'monthly') {
+    const lastDayOfMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
+    return day === lastDayOfMonth
   }
 
   // Yearly: endDate is the last day of the year (UTC)
-  return month === 12 && day === 31;
-});
+  return month === 12 && day === 31
+})
 
 const supportsEstimation = computed(
   () =>
-    !["daily", "weekly"].includes(displayedGranularity.value) &&
-    selectedMetric.value !== "contributors",
-);
+    !['daily', 'weekly'].includes(displayedGranularity.value) &&
+    selectedMetric.value !== 'contributors',
+)
 
 const hasDownloadAnomalies = computed(() =>
-  normalisedDataset.value?.some((datapoint) => !!datapoint.dashIndices.length),
-);
+  normalisedDataset.value?.some(datapoint => !!datapoint.dashIndices.length),
+)
 
-const shouldRenderEstimationOverlay = computed(() => !pending.value && supportsEstimation.value);
+const shouldRenderEstimationOverlay = computed(() => !pending.value && supportsEstimation.value)
 
-const startDate = usePermalink<string>("start", "", {
+const startDate = usePermalink<string>('start', '', {
   permanent: props.permalink,
-});
-const endDate = usePermalink<string>("end", "", {
+})
+const endDate = usePermalink<string>('end', '', {
   permanent: props.permalink,
-});
+})
 
-const hasUserEditedDates = shallowRef(false);
+const hasUserEditedDates = shallowRef(false)
 
 /**
  * Initializes the date range from the provided weeklyDownloads dataset.
@@ -439,15 +439,15 @@ const hasUserEditedDates = shallowRef(false);
  * override user-defined dates.
  */
 function initDateRangeFromWeekly() {
-  if (hasUserEditedDates.value) return;
-  if (!props.weeklyDownloads?.length) return;
+  if (hasUserEditedDates.value) return
+  if (!props.weeklyDownloads?.length) return
 
-  const first = props.weeklyDownloads[0];
-  const last = props.weeklyDownloads[props.weeklyDownloads.length - 1];
-  const start = first?.weekStart ? toIsoDateOnly(first.weekStart) : "";
-  const end = last?.weekEnd ? toIsoDateOnly(last.weekEnd) : "";
-  if (isValidIsoDateOnly(start)) startDate.value = start;
-  if (isValidIsoDateOnly(end)) endDate.value = end;
+  const first = props.weeklyDownloads[0]
+  const last = props.weeklyDownloads[props.weeklyDownloads.length - 1]
+  const start = first?.weekStart ? toIsoDateOnly(first.weekStart) : ''
+  const end = last?.weekEnd ? toIsoDateOnly(last.weekEnd) : ''
+  if (isValidIsoDateOnly(start)) startDate.value = start
+  if (isValidIsoDateOnly(end)) endDate.value = end
 }
 
 /**
@@ -465,32 +465,32 @@ function initDateRangeFromWeekly() {
  * - both `startDate` and `endDate` are already defined
  */
 function initDateRangeFallbackClient() {
-  if (hasUserEditedDates.value) return;
-  if (!import.meta.client) return;
-  if (startDate.value && endDate.value) return;
+  if (hasUserEditedDates.value) return
+  if (!import.meta.client) return
+  if (startDate.value && endDate.value) return
 
-  const today = new Date();
+  const today = new Date()
   const yesterday = new Date(
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 1),
-  );
-  const end = yesterday.toISOString().slice(0, 10);
+  )
+  const end = yesterday.toISOString().slice(0, 10)
 
-  const startObj = new Date(yesterday);
-  startObj.setUTCDate(startObj.getUTCDate() - 29);
-  const start = startObj.toISOString().slice(0, 10);
+  const startObj = new Date(yesterday)
+  startObj.setUTCDate(startObj.getUTCDate() - 29)
+  const start = startObj.toISOString().slice(0, 10)
 
-  if (!startDate.value) startDate.value = start;
-  if (!endDate.value) endDate.value = end;
+  if (!startDate.value) startDate.value = start
+  if (!endDate.value) endDate.value = end
 }
 
 function toUtcDateOnly(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  return date.toISOString().slice(0, 10)
 }
 
 function addUtcDays(date: Date, days: number): Date {
-  const next = new Date(date);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next;
+  const next = new Date(date)
+  next.setUTCDate(next.getUTCDate() + days)
+  return next
 }
 
 /**
@@ -512,71 +512,71 @@ function addUtcDays(date: Date, days: number): Date {
  * - both `startDate` and `endDate` are already defined
  */
 function initDateRangeForMultiPackageWeekly52() {
-  if (hasUserEditedDates.value) return;
-  if (!import.meta.client) return;
-  if (!isMultiPackageMode.value) return;
-  if (startDate.value && endDate.value) return;
+  if (hasUserEditedDates.value) return
+  if (!import.meta.client) return
+  if (!isMultiPackageMode.value) return
+  if (startDate.value && endDate.value) return
 
-  const today = new Date();
+  const today = new Date()
   const yesterday = new Date(
     Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - 1),
-  );
+  )
 
-  endDate.value = toUtcDateOnly(yesterday);
-  startDate.value = toUtcDateOnly(addUtcDays(yesterday, -(52 * 7) + 1));
+  endDate.value = toUtcDateOnly(yesterday)
+  startDate.value = toUtcDateOnly(addUtcDays(yesterday, -(52 * 7) + 1))
 }
 
 watch(
   () => (props.packageNames ?? []).length,
   () => {
-    initDateRangeForMultiPackageWeekly52();
+    initDateRangeForMultiPackageWeekly52()
   },
   { immediate: true },
-);
+)
 
-const initialStartDate = shallowRef<string>(""); // YYYY-MM-DD
-const initialEndDate = shallowRef<string>(""); // YYYY-MM-DD
+const initialStartDate = shallowRef<string>('') // YYYY-MM-DD
+const initialEndDate = shallowRef<string>('') // YYYY-MM-DD
 
 function setInitialRangeIfEmpty() {
-  if (initialStartDate.value || initialEndDate.value) return;
-  if (startDate.value) initialStartDate.value = startDate.value;
-  if (endDate.value) initialEndDate.value = endDate.value;
+  if (initialStartDate.value || initialEndDate.value) return
+  if (startDate.value) initialStartDate.value = startDate.value
+  if (endDate.value) initialEndDate.value = endDate.value
 }
 
 watch(
   [startDate, endDate],
   () => {
-    if (startDate.value || endDate.value) hasUserEditedDates.value = true;
-    setInitialRangeIfEmpty();
+    if (startDate.value || endDate.value) hasUserEditedDates.value = true
+    setInitialRangeIfEmpty()
   },
-  { immediate: true, flush: "post" },
-);
+  { immediate: true, flush: 'post' },
+)
 
 const showResetButton = computed(() => {
-  if (!initialStartDate.value && !initialEndDate.value) return false;
-  return startDate.value !== initialStartDate.value || endDate.value !== initialEndDate.value;
-});
+  if (!initialStartDate.value && !initialEndDate.value) return false
+  return startDate.value !== initialStartDate.value || endDate.value !== initialEndDate.value
+})
 
 function resetDateRange() {
-  hasUserEditedDates.value = false;
-  startDate.value = "";
-  endDate.value = "";
-  initDateRangeFromWeekly();
-  initDateRangeForMultiPackageWeekly52();
-  initDateRangeFallbackClient();
+  hasUserEditedDates.value = false
+  startDate.value = ''
+  endDate.value = ''
+  initDateRangeFromWeekly()
+  initDateRangeForMultiPackageWeekly52()
+  initDateRangeFallbackClient()
 }
 
 const options = shallowRef<
-  | { granularity: "day"; startDate?: string; endDate?: string }
-  | { granularity: "week"; weeks: number; startDate?: string; endDate?: string }
+  | { granularity: 'day'; startDate?: string; endDate?: string }
+  | { granularity: 'week'; weeks: number; startDate?: string; endDate?: string }
   | {
-      granularity: "month";
-      months: number;
-      startDate?: string;
-      endDate?: string;
+      granularity: 'month'
+      months: number
+      startDate?: string
+      endDate?: string
     }
-  | { granularity: "year"; startDate?: string; endDate?: string }
->({ granularity: "week", weeks: 52 });
+  | { granularity: 'year'; startDate?: string; endDate?: string }
+>({ granularity: 'week', weeks: 52 })
 
 /**
  * Applies the current date range (`startDate` / `endDate`) to a base options
@@ -597,56 +597,56 @@ const options = shallowRef<
  *          `endDate` fields
  */
 function applyDateRange<T extends Record<string, unknown>>(base: T): T & DateRangeFields {
-  const next: T & DateRangeFields = { ...base };
+  const next: T & DateRangeFields = { ...base }
 
-  const start = startDate.value ? toIsoDateOnly(startDate.value) : "";
-  const end = endDate.value ? toIsoDateOnly(endDate.value) : "";
+  const start = startDate.value ? toIsoDateOnly(startDate.value) : ''
+  const end = endDate.value ? toIsoDateOnly(endDate.value) : ''
 
-  const validStart = start && isValidIsoDateOnly(start) ? start : "";
-  const validEnd = end && isValidIsoDateOnly(end) ? end : "";
+  const validStart = start && isValidIsoDateOnly(start) ? start : ''
+  const validEnd = end && isValidIsoDateOnly(end) ? end : ''
 
   if (validStart && validEnd) {
-    next.startDate = safeMin(validStart, validEnd);
-    next.endDate = safeMax(validStart, validEnd);
+    next.startDate = safeMin(validStart, validEnd)
+    next.endDate = safeMax(validStart, validEnd)
   } else {
-    if (validStart) next.startDate = validStart;
-    else delete next.startDate;
+    if (validStart) next.startDate = validStart
+    else delete next.startDate
 
-    if (validEnd) next.endDate = validEnd;
-    else delete next.endDate;
+    if (validEnd) next.endDate = validEnd
+    else delete next.endDate
   }
 
-  return next;
+  return next
 }
 
-type MetricId = "downloads" | "likes" | "contributors";
-const DEFAULT_METRIC_ID: MetricId = "downloads";
+type MetricId = 'downloads' | 'likes' | 'contributors'
+const DEFAULT_METRIC_ID: MetricId = 'downloads'
 
 type MetricContext = {
-  packageName: string;
-  repoRef?: RepoRef | null;
-};
+  packageName: string
+  repoRef?: RepoRef | null
+}
 
 type MetricDef = {
-  id: MetricId;
-  label: string;
-  fetch: (context: MetricContext, options: EvolutionOptions) => Promise<EvolutionData>;
-  supportsMulti?: boolean;
-};
+  id: MetricId
+  label: string
+  fetch: (context: MetricContext, options: EvolutionOptions) => Promise<EvolutionData>
+  supportsMulti?: boolean
+}
 
 const hasContributorsFacet = computed(() => {
   if (isMultiPackageMode.value) {
-    return Object.values(repoRefsByPackage.value).some((ref) => ref?.provider === "github");
+    return Object.values(repoRefsByPackage.value).some(ref => ref?.provider === 'github')
   }
-  const ref = props.repoRef;
-  return ref?.provider === "github" && ref.owner && ref.repo;
-});
+  const ref = props.repoRef
+  return ref?.provider === 'github' && ref.owner && ref.repo
+})
 
 const METRICS = computed<MetricDef[]>(() => {
   const metrics: MetricDef[] = [
     {
-      id: "downloads",
-      label: $t("package.trends.items.downloads"),
+      id: 'downloads',
+      label: $t('package.trends.items.downloads'),
       fetch: ({ packageName }, opts) =>
         fetchPackageDownloadEvolution(
           packageName,
@@ -656,84 +656,84 @@ const METRICS = computed<MetricDef[]>(() => {
       supportsMulti: true,
     },
     {
-      id: "likes",
-      label: $t("package.trends.items.likes"),
+      id: 'likes',
+      label: $t('package.trends.items.likes'),
       fetch: ({ packageName }, opts) => fetchPackageLikesEvolution(packageName, opts),
       supportsMulti: true,
     },
-  ];
+  ]
 
   if (hasContributorsFacet.value) {
     metrics.push({
-      id: "contributors",
-      label: $t("package.trends.items.contributors"),
+      id: 'contributors',
+      label: $t('package.trends.items.contributors'),
       fetch: ({ repoRef }, opts) => fetchRepoContributorsEvolution(repoRef, opts),
       supportsMulti: true,
-    });
+    })
   }
 
-  return metrics;
-});
+  return metrics
+})
 
-const selectedMetric = usePermalink<MetricId>("facet", DEFAULT_METRIC_ID, {
+const selectedMetric = usePermalink<MetricId>('facet', DEFAULT_METRIC_ID, {
   permanent: props.permalink,
-});
+})
 
 const effectivePackageNamesForMetric = computed<string[]>(() => {
-  if (!isMultiPackageMode.value) return effectivePackageNames.value;
-  if (selectedMetric.value !== "contributors") return effectivePackageNames.value;
+  if (!isMultiPackageMode.value) return effectivePackageNames.value
+  if (selectedMetric.value !== 'contributors') return effectivePackageNames.value
   return effectivePackageNames.value.filter(
-    (name) => repoRefsByPackage.value[name]?.provider === "github",
-  );
-});
+    name => repoRefsByPackage.value[name]?.provider === 'github',
+  )
+})
 
 const skippedPackagesWithoutGitHub = computed(() => {
-  if (!isMultiPackageMode.value) return [];
-  if (selectedMetric.value !== "contributors") return [];
-  if (!effectivePackageNames.value.length) return [];
+  if (!isMultiPackageMode.value) return []
+  if (selectedMetric.value !== 'contributors') return []
+  if (!effectivePackageNames.value.length) return []
 
   return effectivePackageNames.value.filter(
-    (name) => repoRefsByPackage.value[name]?.provider !== "github",
-  );
-});
+    name => repoRefsByPackage.value[name]?.provider !== 'github',
+  )
+})
 
 const availableGranularities = computed<ChartTimeGranularity[]>(() => {
-  if (selectedMetric.value === "contributors") {
-    return ["weekly", "monthly", "yearly"];
+  if (selectedMetric.value === 'contributors') {
+    return ['weekly', 'monthly', 'yearly']
   }
 
-  return ["daily", "weekly", "monthly", "yearly"];
-});
+  return ['daily', 'weekly', 'monthly', 'yearly']
+})
 
 watch(
   () => [selectedMetric.value, availableGranularities.value] as const,
   () => {
     if (!availableGranularities.value.includes(selectedGranularity.value)) {
-      selectedGranularity.value = "weekly";
+      selectedGranularity.value = 'weekly'
     }
   },
   { immediate: true },
-);
+)
 
 watch(
   () => METRICS.value,
-  (metrics) => {
-    if (!metrics.some((m) => m.id === selectedMetric.value)) {
-      selectedMetric.value = DEFAULT_METRIC_ID;
+  metrics => {
+    if (!metrics.some(m => m.id === selectedMetric.value)) {
+      selectedMetric.value = DEFAULT_METRIC_ID
     }
   },
   { immediate: true },
-);
+)
 
 // Per-metric state keyed by metric id
 const metricStates = reactive<
   Record<
     MetricId,
     {
-      pending: boolean;
-      evolution: EvolutionData;
-      evolutionsByPackage: Record<string, EvolutionData>;
-      requestToken: number;
+      pending: boolean
+      evolution: EvolutionData
+      evolutionsByPackage: Record<string, EvolutionData>
+      requestToken: number
     }
   >
 >({
@@ -755,15 +755,15 @@ const metricStates = reactive<
     evolutionsByPackage: {},
     requestToken: 0,
   },
-});
+})
 
-const activeMetricState = computed(() => metricStates[selectedMetric.value]);
+const activeMetricState = computed(() => metricStates[selectedMetric.value])
 const activeMetricDef = computed(
-  () => METRICS.value.find((m) => m.id === selectedMetric.value) ?? METRICS.value[0],
-);
-const pending = computed(() => activeMetricState.value.pending);
+  () => METRICS.value.find(m => m.id === selectedMetric.value) ?? METRICS.value[0],
+)
+const pending = computed(() => activeMetricState.value.pending)
 
-const isMounted = shallowRef(false);
+const isMounted = shallowRef(false)
 
 // Watches granularity and date inputs to keep request options in sync and
 // manage the loading state.
@@ -778,24 +778,24 @@ const isMounted = shallowRef(false);
 watch(
   [selectedGranularity, startDate, endDate],
   ([granularityValue]) => {
-    if (granularityValue === "daily") options.value = applyDateRange({ granularity: "day" });
-    else if (granularityValue === "weekly")
-      options.value = applyDateRange({ granularity: "week", weeks: 52 });
-    else if (granularityValue === "monthly")
-      options.value = applyDateRange({ granularity: "month", months: 24 });
-    else options.value = applyDateRange({ granularity: "year" });
+    if (granularityValue === 'daily') options.value = applyDateRange({ granularity: 'day' })
+    else if (granularityValue === 'weekly')
+      options.value = applyDateRange({ granularity: 'week', weeks: 52 })
+    else if (granularityValue === 'monthly')
+      options.value = applyDateRange({ granularity: 'month', months: 24 })
+    else options.value = applyDateRange({ granularity: 'year' })
 
     // Do not set pending during initial setup
-    if (!isMounted.value) return;
+    if (!isMounted.value) return
 
-    const packageNames = effectivePackageNames.value;
+    const packageNames = effectivePackageNames.value
     if (!import.meta.client || !packageNames.length) {
-      activeMetricState.value.pending = false;
-      return;
+      activeMetricState.value.pending = false
+      return
     }
 
-    const o = options.value;
-    const hasExplicitRange = ("startDate" in o && o.startDate) || ("endDate" in o && o.endDate);
+    const o = options.value
+    const hasExplicitRange = ('startDate' in o && o.startDate) || ('endDate' in o && o.endDate)
 
     // Do not show loading when weeklyDownloads is already provided
     if (
@@ -805,14 +805,14 @@ watch(
       props.weeklyDownloads?.length &&
       !hasExplicitRange
     ) {
-      activeMetricState.value.pending = false;
-      return;
+      activeMetricState.value.pending = false
+      return
     }
 
-    activeMetricState.value.pending = true;
+    activeMetricState.value.pending = true
   },
   { immediate: true },
-);
+)
 
 /**
  * Fetches evolution data for a given metric based on the current granularity,
@@ -826,86 +826,86 @@ watch(
  * - manages the metric's `pending` loading state
  */
 async function loadMetric(metricId: MetricId) {
-  if (!import.meta.client) return;
+  if (!import.meta.client) return
 
-  const state = metricStates[metricId];
-  const metric = METRICS.value.find((m) => m.id === metricId)!;
-  const currentToken = ++state.requestToken;
-  state.pending = true;
+  const state = metricStates[metricId]
+  const metric = METRICS.value.find(m => m.id === metricId)!
+  const currentToken = ++state.requestToken
+  state.pending = true
 
-  const fetchFn = (context: MetricContext) => metric.fetch(context, options.value);
+  const fetchFn = (context: MetricContext) => metric.fetch(context, options.value)
 
   try {
-    const packageNames = effectivePackageNamesForMetric.value;
+    const packageNames = effectivePackageNamesForMetric.value
     if (!packageNames.length) {
-      if (isMultiPackageMode.value) state.evolutionsByPackage = {};
-      else state.evolution = [];
-      displayedGranularity.value = selectedGranularity.value;
-      return;
+      if (isMultiPackageMode.value) state.evolutionsByPackage = {}
+      else state.evolution = []
+      displayedGranularity.value = selectedGranularity.value
+      return
     }
 
     if (isMultiPackageMode.value) {
       if (metric.supportsMulti === false) {
-        state.evolutionsByPackage = {};
-        displayedGranularity.value = selectedGranularity.value;
-        return;
+        state.evolutionsByPackage = {}
+        displayedGranularity.value = selectedGranularity.value
+        return
       }
 
       const settled = await Promise.allSettled(
-        packageNames.map(async (pkg) => {
-          const repoRef = metricId === "contributors" ? repoRefsByPackage.value[pkg] : null;
-          const result = await fetchFn({ packageName: pkg, repoRef });
-          return { pkg, result: (result ?? []) as EvolutionData };
+        packageNames.map(async pkg => {
+          const repoRef = metricId === 'contributors' ? repoRefsByPackage.value[pkg] : null
+          const result = await fetchFn({ packageName: pkg, repoRef })
+          return { pkg, result: (result ?? []) as EvolutionData }
         }),
-      );
+      )
 
-      if (currentToken !== state.requestToken) return;
+      if (currentToken !== state.requestToken) return
 
-      const next: Record<string, EvolutionData> = {};
+      const next: Record<string, EvolutionData> = {}
       for (const entry of settled) {
-        if (entry.status === "fulfilled") next[entry.value.pkg] = entry.value.result;
+        if (entry.status === 'fulfilled') next[entry.value.pkg] = entry.value.result
       }
 
-      state.evolutionsByPackage = next;
-      displayedGranularity.value = selectedGranularity.value;
-      return;
+      state.evolutionsByPackage = next
+      displayedGranularity.value = selectedGranularity.value
+      return
     }
 
-    const pkg = packageNames[0] ?? "";
+    const pkg = packageNames[0] ?? ''
     if (!pkg) {
-      state.evolution = [];
-      displayedGranularity.value = selectedGranularity.value;
-      return;
+      state.evolution = []
+      displayedGranularity.value = selectedGranularity.value
+      return
     }
 
     // In single-package mode the parent already fetches weekly downloads for the
     // sparkline (WeeklyDownloadStats). When the user hasn't customised the date
     // range we can reuse that prop directly and skip a redundant API call.
     if (metricId === DEFAULT_METRIC_ID) {
-      const o = options.value;
-      const hasExplicitRange = ("startDate" in o && o.startDate) || ("endDate" in o && o.endDate);
+      const o = options.value
+      const hasExplicitRange = ('startDate' in o && o.startDate) || ('endDate' in o && o.endDate)
       if (
         selectedGranularity.value === DEFAULT_GRANULARITY &&
         props.weeklyDownloads?.length &&
         !hasExplicitRange
       ) {
-        state.evolution = props.weeklyDownloads;
-        displayedGranularity.value = DEFAULT_GRANULARITY;
-        return;
+        state.evolution = props.weeklyDownloads
+        displayedGranularity.value = DEFAULT_GRANULARITY
+        return
       }
     }
 
-    const result = await fetchFn({ packageName: pkg, repoRef: props.repoRef });
-    if (currentToken !== state.requestToken) return;
+    const result = await fetchFn({ packageName: pkg, repoRef: props.repoRef })
+    if (currentToken !== state.requestToken) return
 
-    state.evolution = (result ?? []) as EvolutionData;
-    displayedGranularity.value = selectedGranularity.value;
+    state.evolution = (result ?? []) as EvolutionData
+    displayedGranularity.value = selectedGranularity.value
   } catch {
-    if (currentToken !== state.requestToken) return;
-    if (isMultiPackageMode.value) state.evolutionsByPackage = {};
-    else state.evolution = [];
+    if (currentToken !== state.requestToken) return
+    if (isMultiPackageMode.value) state.evolutionsByPackage = {}
+    else state.evolution = []
   } finally {
-    if (currentToken === state.requestToken) state.pending = false;
+    if (currentToken === state.requestToken) state.pending = false
   }
 }
 
@@ -917,53 +917,53 @@ async function loadMetric(metricId: MetricId) {
 // - prevents unnecessary API load and visual flicker of the loading state
 //
 const debouncedLoadNow = useDebounceFn(() => {
-  loadMetric(selectedMetric.value);
-}, 1000);
+  loadMetric(selectedMetric.value)
+}, 1000)
 
 const fetchTriggerKey = computed(() => {
-  const names = effectivePackageNames.value.join(",");
-  const o = options.value;
+  const names = effectivePackageNames.value.join(',')
+  const o = options.value
   const repoKey = props.repoRef
     ? `${props.repoRef.provider}:${props.repoRef.owner}/${props.repoRef.repo}`
-    : "";
+    : ''
   return [
-    isMultiPackageMode.value ? "M" : "S",
+    isMultiPackageMode.value ? 'M' : 'S',
     names,
     repoKey,
-    String(props.createdIso ?? ""),
-    String(o.granularity ?? ""),
-    String("weeks" in o ? (o.weeks ?? "") : ""),
-    String("months" in o ? (o.months ?? "") : ""),
-    String("startDate" in o ? (o.startDate ?? "") : ""),
-    String("endDate" in o ? (o.endDate ?? "") : ""),
-  ].join("|");
-});
+    String(props.createdIso ?? ''),
+    String(o.granularity ?? ''),
+    String('weeks' in o ? (o.weeks ?? '') : ''),
+    String('months' in o ? (o.months ?? '') : ''),
+    String('startDate' in o ? (o.startDate ?? '') : ''),
+    String('endDate' in o ? (o.endDate ?? '') : ''),
+  ].join('|')
+})
 
 watch(
   () => fetchTriggerKey.value,
   () => {
-    if (!import.meta.client) return;
-    if (!isMounted.value) return;
-    debouncedLoadNow();
+    if (!import.meta.client) return
+    if (!isMounted.value) return
+    debouncedLoadNow()
   },
-  { flush: "post" },
-);
+  { flush: 'post' },
+)
 
 watch(
   () => repoRefsByPackage.value,
   () => {
-    if (!import.meta.client) return;
-    if (!isMounted.value) return;
-    if (!isMultiPackageMode.value) return;
-    if (selectedMetric.value !== "contributors") return;
-    debouncedLoadNow();
+    if (!import.meta.client) return
+    if (!isMounted.value) return
+    if (!isMultiPackageMode.value) return
+    if (selectedMetric.value !== 'contributors') return
+    debouncedLoadNow()
   },
   { deep: true },
-);
+)
 
 const effectiveDataSingle = computed<EvolutionData>(() => {
-  const state = activeMetricState.value;
-  let data: EvolutionData;
+  const state = activeMetricState.value
+  let data: EvolutionData
   if (
     selectedMetric.value === DEFAULT_METRIC_ID &&
     displayedGranularity.value === DEFAULT_GRANULARITY &&
@@ -972,24 +972,24 @@ const effectiveDataSingle = computed<EvolutionData>(() => {
     data =
       isWeeklyDataset(state.evolution) && state.evolution.length
         ? state.evolution
-        : props.weeklyDownloads;
+        : props.weeklyDownloads
   } else {
-    data = state.evolution;
+    data = state.evolution
   }
 
   if (isDownloadsMetric.value && data.length) {
-    const pkg = effectivePackageNames.value[0] ?? props.packageName ?? "";
+    const pkg = effectivePackageNames.value[0] ?? props.packageName ?? ''
     if (localSettings.value.chartFilter.anomaliesFixed) {
       data = applyBlocklistCorrection({
         data,
         packageName: pkg,
         granularity: displayedGranularity.value,
-      });
+      })
     }
   }
 
-  return data;
-});
+  return data
+})
 
 /**
  * Normalized chart data derived from the active metric's evolution datasets.
@@ -1006,154 +1006,154 @@ const effectiveDataSingle = computed<EvolutionData>(() => {
  * the template to handle empty states without ambiguity.
  */
 const chartData = computed<{
-  dataset: VueUiXyDatasetItem[] | null;
-  dates: number[];
+  dataset: VueUiXyDatasetItem[] | null
+  dates: number[]
 }>(() => {
   if (!isMultiPackageMode.value) {
-    const pkg = effectivePackageNames.value[0] ?? props.packageName ?? "";
-    return formatXyDataset(displayedGranularity.value, effectiveDataSingle.value, pkg);
+    const pkg = effectivePackageNames.value[0] ?? props.packageName ?? ''
+    return formatXyDataset(displayedGranularity.value, effectiveDataSingle.value, pkg)
   }
 
-  const state = activeMetricState.value;
-  const names = effectivePackageNamesForMetric.value;
-  const granularity = displayedGranularity.value;
+  const state = activeMetricState.value
+  const names = effectivePackageNamesForMetric.value
+  const granularity = displayedGranularity.value
 
-  const timestampSet = new Set<number>();
+  const timestampSet = new Set<number>()
   const pointsByPackage = new Map<
     string,
     Array<{ timestamp: number; value: number; hasAnomaly?: boolean }>
-  >();
+  >()
 
   for (const pkg of names) {
-    let data = state.evolutionsByPackage[pkg] ?? [];
+    let data = state.evolutionsByPackage[pkg] ?? []
     if (isDownloadsMetric.value && data.length) {
       if (localSettings.value.chartFilter.anomaliesFixed) {
-        data = applyBlocklistCorrection({ data, packageName: pkg, granularity });
+        data = applyBlocklistCorrection({ data, packageName: pkg, granularity })
       }
     }
-    const points = extractSeriesPoints(granularity, data);
+    const points = extractSeriesPoints(granularity, data)
 
-    pointsByPackage.set(pkg, points);
-    for (const p of points) timestampSet.add(p.timestamp);
+    pointsByPackage.set(pkg, points)
+    for (const p of points) timestampSet.add(p.timestamp)
   }
 
-  const dates = Array.from(timestampSet).sort((a, b) => a - b);
-  if (!dates.length) return { dataset: null, dates: [] };
+  const dates = Array.from(timestampSet).sort((a, b) => a - b)
+  if (!dates.length) return { dataset: null, dates: [] }
 
-  const dataset: VueUiXyDatasetItem[] = names.map((pkg) => {
-    const points = pointsByPackage.get(pkg) ?? [];
-    const valueByTimestamp = new Map<number, number>();
-    const anomalyTimestamps = new Set<number>();
+  const dataset: VueUiXyDatasetItem[] = names.map(pkg => {
+    const points = pointsByPackage.get(pkg) ?? []
+    const valueByTimestamp = new Map<number, number>()
+    const anomalyTimestamps = new Set<number>()
     for (const p of points) {
-      valueByTimestamp.set(p.timestamp, p.value);
-      if (p.hasAnomaly) anomalyTimestamps.add(p.timestamp);
+      valueByTimestamp.set(p.timestamp, p.value)
+      if (p.hasAnomaly) anomalyTimestamps.add(p.timestamp)
     }
 
-    const series = dates.map((t) => valueByTimestamp.get(t) ?? 0);
+    const series = dates.map(t => valueByTimestamp.get(t) ?? 0)
     const dashIndices = dates
       .map((t, index) => (anomalyTimestamps.has(t) ? index : -1))
-      .filter((index) => index !== -1);
+      .filter(index => index !== -1)
 
     const item: VueUiXyDatasetItem = {
       name: applyEllipsis(pkg, 32),
-      type: "line",
+      type: 'line',
       series,
       dashIndices,
-    } as VueUiXyDatasetItem;
+    } as VueUiXyDatasetItem
 
     if (isListedFramework(pkg)) {
-      item.color = getFrameworkColor(pkg);
+      item.color = getFrameworkColor(pkg)
     }
-    return item;
-  });
+    return item
+  })
 
-  return { dataset, dates };
-});
+  return { dataset, dates }
+})
 
 const normalisedDataset = computed(() => {
-  const granularity = displayedGranularity.value;
-  const endDateMs = endDate.value ? endDateOnlyToUtcMs(endDate.value) : null;
-  const referenceMs = endDateMs ?? Date.now();
-  const lastDateMs = chartData.value.dates.at(-1) ?? 0;
-  const isAbsoluteMetric = selectedMetric.value === "contributors";
+  const granularity = displayedGranularity.value
+  const endDateMs = endDate.value ? endDateOnlyToUtcMs(endDate.value) : null
+  const referenceMs = endDateMs ?? Date.now()
+  const lastDateMs = chartData.value.dates.at(-1) ?? 0
+  const isAbsoluteMetric = selectedMetric.value === 'contributors'
 
-  return chartData.value.dataset?.map((d) => {
+  return chartData.value.dataset?.map(d => {
     const series = applyDataPipeline(
-      d.series.map((v) => v ?? 0),
+      d.series.map(v => v ?? 0),
       {
         averageWindow: localSettings.value.chartFilter.averageWindow,
         smoothingTau: localSettings.value.chartFilter.smoothingTau,
         predictionPoints:
-          granularity === "weekly"
+          granularity === 'weekly'
             ? 0 // weekly buckets are end-aligned → always complete, no prediction needed
             : (localSettings.value.chartFilter.predictionPoints ?? DEFAULT_PREDICTION_POINTS),
       },
       { granularity, lastDateMs, referenceMs, isAbsoluteMetric },
-    );
+    )
 
     return {
       ...d,
       series,
       dashIndices: d.dashIndices ?? [],
-    };
-  });
-});
+    }
+  })
+})
 
 const maxDatapoints = computed(() =>
-  Math.max(0, ...(chartData.value.dataset ?? []).map((d) => d.series.length)),
-);
+  Math.max(0, ...(chartData.value.dataset ?? []).map(d => d.series.length)),
+)
 
 const datetimeFormatterOptions = computed(() => {
   return {
-    daily: { year: "yyyy-MM-dd", month: "yyyy-MM-dd", day: "yyyy-MM-dd" },
-    weekly: { year: "yyyy-MM-dd", month: "yyyy-MM-dd", day: "yyyy-MM-dd" },
-    monthly: { year: "MMM yyyy", month: "MMM yyyy", day: "MMM yyyy" },
-    yearly: { year: "yyyy", month: "yyyy", day: "yyyy" },
-  }[selectedGranularity.value];
-});
+    daily: { year: 'yyyy-MM-dd', month: 'yyyy-MM-dd', day: 'yyyy-MM-dd' },
+    weekly: { year: 'yyyy-MM-dd', month: 'yyyy-MM-dd', day: 'yyyy-MM-dd' },
+    monthly: { year: 'MMM yyyy', month: 'MMM yyyy', day: 'MMM yyyy' },
+    yearly: { year: 'yyyy', month: 'yyyy', day: 'yyyy' },
+  }[selectedGranularity.value]
+})
 
 // Cached date formatter for tooltip
 const tooltipDateFormatter = computed(() => {
-  const granularity = displayedGranularity.value;
+  const granularity = displayedGranularity.value
   return new Intl.DateTimeFormat(locale.value, {
-    year: "numeric",
-    month: granularity === "yearly" ? undefined : "short",
-    day: granularity === "daily" || granularity === "weekly" ? "numeric" : undefined,
-    timeZone: "UTC",
-  });
-});
+    year: 'numeric',
+    month: granularity === 'yearly' ? undefined : 'short',
+    day: granularity === 'daily' || granularity === 'weekly' ? 'numeric' : undefined,
+    timeZone: 'UTC',
+  })
+})
 
 function buildExportFilename(extension: string): string {
-  const g = selectedGranularity.value;
-  const range = `${startDate.value}_${endDate.value}`;
+  const g = selectedGranularity.value
+  const range = `${startDate.value}_${endDate.value}`
 
   if (!isMultiPackageMode.value) {
-    const name = effectivePackageNames.value[0] ?? props.packageName ?? "package";
-    return `${sanitise(applyEllipsis(name, 32))}-${g}_${range}.${extension}`;
+    const name = effectivePackageNames.value[0] ?? props.packageName ?? 'package'
+    return `${sanitise(applyEllipsis(name, 32))}-${g}_${range}.${extension}`
   }
 
-  const names = effectivePackageNames.value.map((name) => applyEllipsis(name, 32));
-  const label = names.length === 1 ? names[0] : names.join("_");
-  return `${sanitise(label ?? "")}-${g}_${range}.${extension}`;
+  const names = effectivePackageNames.value.map(name => applyEllipsis(name, 32))
+  const label = names.length === 1 ? names[0] : names.join('_')
+  return `${sanitise(label ?? '')}-${g}_${range}.${extension}`
 }
 
 const granularityLabels = computed(() => ({
-  daily: $t("package.trends.granularity_daily"),
-  weekly: $t("package.trends.granularity_weekly"),
-  monthly: $t("package.trends.granularity_monthly"),
-  yearly: $t("package.trends.granularity_yearly"),
-}));
+  daily: $t('package.trends.granularity_daily'),
+  weekly: $t('package.trends.granularity_weekly'),
+  monthly: $t('package.trends.granularity_monthly'),
+  yearly: $t('package.trends.granularity_yearly'),
+}))
 
 function getGranularityLabel(granularity: ChartTimeGranularity) {
-  return granularityLabels.value[granularity];
+  return granularityLabels.value[granularity]
 }
 
 const granularityItems = computed(() =>
-  availableGranularities.value.map((granularity) => ({
+  availableGranularities.value.map(granularity => ({
     label: granularityLabels.value[granularity],
     value: granularity,
   })),
-);
+)
 
 /**
  * Build and return svg markup for estimation overlays on the chart.
@@ -1170,23 +1170,23 @@ const granularityItems = computed(() =>
  * when no estimation overlay should be rendered.
  */
 function drawEstimationLine(svg: Record<string, any>) {
-  if (!shouldRenderEstimationOverlay.value) return "";
+  if (!shouldRenderEstimationOverlay.value) return ''
 
-  const data = Array.isArray(svg?.data) ? svg.data : [];
-  if (!data.length) return "";
+  const data = Array.isArray(svg?.data) ? svg.data : []
+  if (!data.length) return ''
 
   // Collect per-series estimates and a global max candidate for the y-axis
-  const lines: string[] = [];
+  const lines: string[] = []
 
   for (const serie of data) {
-    const plots = serie?.plots;
-    if (!Array.isArray(plots) || plots.length < 2) continue;
+    const plots = serie?.plots
+    if (!Array.isArray(plots) || plots.length < 2) continue
 
-    const previousPoint = plots.at(-2);
-    const lastPoint = plots.at(-1);
-    if (!previousPoint || !lastPoint) continue;
+    const previousPoint = plots.at(-2)
+    const lastPoint = plots.at(-1)
+    if (!previousPoint || !lastPoint) continue
 
-    const stroke = String(serie?.color ?? colors.value.fg);
+    const stroke = String(serie?.color ?? colors.value.fg)
 
     /**
      * The following svg elements are injected in the #svg slot of VueUiXy:
@@ -1223,12 +1223,12 @@ function drawEstimationLine(svg: Record<string, any>) {
         stroke="${colors.value.bg}"
         stroke-width="2"
       />
-    `);
+    `)
   }
 
-  if (!lines.length) return "";
+  if (!lines.length) return ''
 
-  return lines.join("\n");
+  return lines.join('\n')
 }
 
 /**
@@ -1250,13 +1250,13 @@ function drawEstimationLine(svg: Record<string, any>) {
  * no labels should be rendered.
  */
 function drawLastDatapointLabel(svg: Record<string, any>) {
-  const data = Array.isArray(svg?.data) ? svg.data : [];
-  if (!data.length) return "";
+  const data = Array.isArray(svg?.data) ? svg.data : []
+  if (!data.length) return ''
 
-  const dataLabels: string[] = [];
+  const dataLabels: string[] = []
 
   for (const serie of data) {
-    const lastPlot = serie.plots.at(-1);
+    const lastPlot = serie.plots.at(-1)
 
     dataLabels.push(`
       <text
@@ -1272,10 +1272,10 @@ function drawLastDatapointLabel(svg: Record<string, any>) {
       >
         ${compactNumberFormatter.value.format(Number.isFinite(lastPlot.value) ? lastPlot.value : 0)}
       </text>
-    `);
+    `)
   }
 
-  return dataLabels.join("\n");
+  return dataLabels.join('\n')
 }
 
 /**
@@ -1285,10 +1285,10 @@ function drawLastDatapointLabel(svg: Record<string, any>) {
  * Legend items are displayed in a column, on the top left of the chart.
  */
 function drawSvgPrintLegend(svg: Record<string, any>) {
-  const data = Array.isArray(svg?.data) ? svg.data : [];
-  if (!data.length) return "";
+  const data = Array.isArray(svg?.data) ? svg.data : []
+  if (!data.length) return ''
 
-  const seriesNames: string[] = [];
+  const seriesNames: string[] = []
 
   data.forEach((serie, index) => {
     seriesNames.push(`
@@ -1313,8 +1313,8 @@ function drawSvgPrintLegend(svg: Record<string, any>) {
       >
         ${serie.name}
       </text>
-  `);
-  });
+  `)
+  })
 
   // Inject the estimation legend item when necessary
   if (
@@ -1342,35 +1342,35 @@ function drawSvgPrintLegend(svg: Record<string, any>) {
           stroke-width="1"
           paint-order="stroke fill"
         >
-          ${$t("package.trends.legend_estimation")}
+          ${$t('package.trends.legend_estimation')}
         </text>
-      `);
+      `)
   }
 
-  return seriesNames.join("\n");
+  return seriesNames.join('\n')
 }
 
-const showCorrectionControls = shallowRef(false);
-const isResizing = shallowRef(false);
+const showCorrectionControls = shallowRef(false)
+const isResizing = shallowRef(false)
 
 const chartHeight = computed(() => {
   if (isMobile.value) {
-    return 950;
+    return 950
   }
-  return showCorrectionControls.value && props.inModal ? 494 : 600;
-});
+  return showCorrectionControls.value && props.inModal ? 494 : 600
+})
 
 const { start } = useTimeoutFn(
   () => {
-    isResizing.value = false;
+    isResizing.value = false
   },
   200,
   { immediate: false },
-);
+)
 
 function pauseChartTransitions() {
-  isResizing.value = true;
-  start();
+  isResizing.value = true
+  start()
 }
 
 watch(
@@ -1378,29 +1378,29 @@ watch(
   (newH, oldH) => {
     if (newH !== oldH) {
       // Avoids triggering chart line transitions when the chart is resized
-      pauseChartTransitions();
+      pauseChartTransitions()
     }
   },
   { immediate: true },
-);
+)
 
 // VueUiXy chart component configuration
 const chartConfig = computed<VueUiXyConfig>(() => {
   return {
-    theme: isDarkMode.value ? "dark" : ("" as VueDataUiTheme),
+    theme: isDarkMode.value ? 'dark' : ('' as VueDataUiTheme),
     a11y: {
       translations: {
         keyboardNavigation: $t(
-          "package.trends.chart_assistive_text.keyboard_navigation_horizontal",
+          'package.trends.chart_assistive_text.keyboard_navigation_horizontal',
         ),
-        tableAvailable: $t("package.trends.chart_assistive_text.table_available"),
-        tableCaption: $t("package.trends.chart_assistive_text.table_caption"),
+        tableAvailable: $t('package.trends.chart_assistive_text.table_available'),
+        tableCaption: $t('package.trends.chart_assistive_text.table_caption'),
       },
     },
     chart: {
       height: chartHeight.value,
       backgroundColor: colors.value.bg,
-      padding: { bottom: displayedGranularity.value === "yearly" ? 84 : 64, right: 128 }, // padding right is set to leave space of last datapoint label(s)
+      padding: { bottom: displayedGranularity.value === 'yearly' ? 84 : 64, right: 128 }, // padding right is set to leave space of last datapoint label(s)
       userOptions: {
         buttons: {
           pdf: false,
@@ -1411,53 +1411,53 @@ const chartConfig = computed<VueUiXyConfig>(() => {
           altCopy: true,
         },
         buttonTitles: {
-          csv: $t("package.trends.download_file", { fileType: "CSV" }),
-          img: $t("package.trends.download_file", { fileType: "PNG" }),
-          svg: $t("package.trends.download_file", { fileType: "SVG" }),
-          annotator: $t("package.trends.toggle_annotator"),
-          stack: $t("package.trends.toggle_stack_mode"),
-          altCopy: $t("package.trends.copy_alt.button_label"), // Do not make this text dependant on the `copied` variable, since this would re-render the component, which is undesirable if the minimap was used to select a time frame.
-          open: $t("package.trends.open_options"),
-          close: $t("package.trends.close_options"),
+          csv: $t('package.trends.download_file', { fileType: 'CSV' }),
+          img: $t('package.trends.download_file', { fileType: 'PNG' }),
+          svg: $t('package.trends.download_file', { fileType: 'SVG' }),
+          annotator: $t('package.trends.toggle_annotator'),
+          stack: $t('package.trends.toggle_stack_mode'),
+          altCopy: $t('package.trends.copy_alt.button_label'), // Do not make this text dependant on the `copied` variable, since this would re-render the component, which is undesirable if the minimap was used to select a time frame.
+          open: $t('package.trends.open_options'),
+          close: $t('package.trends.close_options'),
         },
         callbacks: {
-          img: (args) => {
-            const imageUri = args?.imageUri;
-            if (!imageUri) return;
-            loadFile(imageUri, buildExportFilename("png"));
+          img: args => {
+            const imageUri = args?.imageUri
+            if (!imageUri) return
+            loadFile(imageUri, buildExportFilename('png'))
           },
-          csv: (csvStr) => {
-            if (!csvStr) return;
-            const PLACEHOLDER_CHAR = "\0";
-            const multilineDateTemplate = $t("package.trends.date_range_multiline", {
+          csv: csvStr => {
+            if (!csvStr) return
+            const PLACEHOLDER_CHAR = '\0'
+            const multilineDateTemplate = $t('package.trends.date_range_multiline', {
               start: PLACEHOLDER_CHAR,
               end: PLACEHOLDER_CHAR,
             })
-              .replaceAll(PLACEHOLDER_CHAR, "")
-              .trim();
+              .replaceAll(PLACEHOLDER_CHAR, '')
+              .trim()
             const blob = new Blob([
               csvStr
-                .replace("data:text/csv;charset=utf-8,", "")
+                .replace('data:text/csv;charset=utf-8,', '')
                 .replaceAll(`\n${multilineDateTemplate}`, ` ${multilineDateTemplate}`),
-            ]);
-            const url = URL.createObjectURL(blob);
-            loadFile(url, buildExportFilename("csv"));
-            URL.revokeObjectURL(url);
+            ])
+            const url = URL.createObjectURL(blob)
+            loadFile(url, buildExportFilename('csv'))
+            URL.revokeObjectURL(url)
           },
-          svg: (args) => {
-            const blob = args?.blob;
-            if (!blob) return;
-            const url = URL.createObjectURL(blob);
-            loadFile(url, buildExportFilename("svg"));
-            URL.revokeObjectURL(url);
+          svg: args => {
+            const blob = args?.blob
+            if (!blob) return
+            const url = URL.createObjectURL(blob)
+            loadFile(url, buildExportFilename('svg'))
+            URL.revokeObjectURL(url)
           },
           altCopy: ({ dataset: dst, config: cfg }) =>
             copyAltTextForTrendLineChart({
               dataset: dst,
               config: {
                 ...cfg,
-                formattedDatasetValues: (dst?.lines || []).map((d) =>
-                  d.series.map((n) => compactNumberFormatter.value.format(n ?? 0)),
+                formattedDatasetValues: (dst?.lines || []).map(d =>
+                  d.series.map(n => compactNumberFormatter.value.format(n ?? 0)),
                 ),
                 hasEstimation:
                   supportsEstimation.value && !isEndDateOnPeriodEnd.value && !isZoomed.value,
@@ -1476,7 +1476,7 @@ const chartConfig = computed<VueUiXyConfig>(() => {
           fontSize: isMobile.value ? 24 : 16,
           color: pending.value ? colors.value.border : colors.value.fgSubtle,
           axis: {
-            yLabel: $t("package.trends.y_axis_label", {
+            yLabel: $t('package.trends.y_axis_label', {
               granularity: getGranularityLabel(selectedGranularity.value),
               facet: activeMetricDef.value?.label,
             }),
@@ -1497,7 +1497,7 @@ const chartConfig = computed<VueUiXyConfig>(() => {
           },
           yAxis: {
             formatter: ({ value }: { value: number }) => {
-              return compactNumberFormatter.value.format(Number.isFinite(value) ? value : 0);
+              return compactNumberFormatter.value.format(Number.isFinite(value) ? value : 0)
             },
             useNiceScale: true, // daily/weekly -> true, monthly/yearly -> false
             gap: 24, // vertical gap between individual series in stacked mode
@@ -1511,43 +1511,43 @@ const chartConfig = computed<VueUiXyConfig>(() => {
         fontSize: 16,
         circleMarker: { radius: 3, color: colors.value.border },
         useDefaultFormat: true,
-        timeFormat: "yyyy-MM-dd HH:mm:ss",
+        timeFormat: 'yyyy-MM-dd HH:mm:ss',
       },
       highlighter: { useLine: true },
-      legend: { show: false, position: "top" },
+      legend: { show: false, position: 'top' },
       tooltip: {
-        teleportTo: props.inModal ? "#chart-modal" : undefined,
-        borderColor: "transparent",
+        teleportTo: props.inModal ? '#chart-modal' : undefined,
+        borderColor: 'transparent',
         backdropFilter: false,
-        backgroundColor: "transparent",
+        backgroundColor: 'transparent',
         customFormat: ({ datapoint: items, absoluteIndex }) => {
-          if (!items || pending.value) return "";
+          if (!items || pending.value) return ''
 
-          const hasMultipleItems = items.length > 1;
+          const hasMultipleItems = items.length > 1
 
           // Format date for multiple series datasets
-          let formattedDate = "";
+          let formattedDate = ''
           if (hasMultipleItems && absoluteIndex !== undefined) {
-            const index = Number(absoluteIndex);
+            const index = Number(absoluteIndex)
             if (Number.isInteger(index) && index >= 0 && index < chartData.value.dates.length) {
-              const timestamp = chartData.value.dates[index];
-              if (typeof timestamp === "number") {
-                formattedDate = tooltipDateFormatter.value.format(new Date(timestamp));
+              const timestamp = chartData.value.dates[index]
+              if (typeof timestamp === 'number') {
+                formattedDate = tooltipDateFormatter.value.format(new Date(timestamp))
               }
             }
           }
 
           const rows = items
             .map((d: Record<string, any>) => {
-              const label = String(d?.name ?? "").trim();
-              const raw = Number(d?.value ?? 0);
-              const v = compactNumberFormatter.value.format(Number.isFinite(raw) ? raw : 0);
+              const label = String(d?.name ?? '').trim()
+              const raw = Number(d?.value ?? 0)
+              const v = compactNumberFormatter.value.format(Number.isFinite(raw) ? raw : 0)
 
               if (!hasMultipleItems) {
                 // We don't need the name of the package in this case, since it is shown in the xAxis label
                 return `<div>
                   <span class="text-base text-[var(--fg)] font-mono tabular-nums">${v}</span>
-                </div>`;
+                </div>`
               }
 
               return `<div class="grid grid-cols-[12px_minmax(0,1fr)_max-content] items-center gap-x-3">
@@ -1564,16 +1564,16 @@ const chartConfig = computed<VueUiXyConfig>(() => {
                 <span class="text-base text-[var(--fg)] font-mono tabular-nums text-end">
                   ${v}
                 </span>
-              </div>`;
+              </div>`
             })
-            .join("");
+            .join('')
 
           return `<div class="font-mono text-xs p-3 border border-border rounded-md bg-[var(--bg)]/10 backdrop-blur-md">
-            ${formattedDate ? `<div class="text-2xs text-[var(--fg-subtle)] mb-2">${formattedDate}</div>` : ""}
-            <div class="${hasMultipleItems ? "flex flex-col gap-2" : ""}">
+            ${formattedDate ? `<div class="text-2xs text-[var(--fg-subtle)] mb-2">${formattedDate}</div>` : ''}
+            <div class="${hasMultipleItems ? 'flex flex-col gap-2' : ''}">
               ${rows}
             </div>
-          </div>`;
+          </div>`
         },
       },
       zoom: {
@@ -1582,13 +1582,13 @@ const chartConfig = computed<VueUiXyConfig>(() => {
         useResetSlot: true,
         minimap: {
           show: true,
-          lineColor: "#FAFAFA",
+          lineColor: '#FAFAFA',
           selectedColor: accent.value,
           selectedColorOpacity: 0.06,
           frameColor: colors.value.border,
           handleWidth: isMobile.value ? 40 : 20, // does not affect the size of the touch area
           handleBorderColor: colors.value.fgSubtle,
-          handleType: "grab", // 'empty' | 'chevron' | 'arrow' | 'grab'
+          handleType: 'grab', // 'empty' | 'chevron' | 'arrow' | 'grab'
         },
         preview: {
           fill: transparentizeOklch(accent.value, isDarkMode.value ? 0.95 : 0.92),
@@ -1598,39 +1598,39 @@ const chartConfig = computed<VueUiXyConfig>(() => {
         },
       },
     },
-  };
-});
+  }
+})
 
-const isDownloadsMetric = computed(() => selectedMetric.value === "downloads");
+const isDownloadsMetric = computed(() => selectedMetric.value === 'downloads')
 
-const packageAnomalies = computed(() => getAnomaliesForPackages(effectivePackageNames.value));
-const hasAnomalies = computed(() => packageAnomalies.value.length > 0);
+const packageAnomalies = computed(() => getAnomaliesForPackages(effectivePackageNames.value))
+const hasAnomalies = computed(() => packageAnomalies.value.length > 0)
 
 function formatAnomalyDate(dateStr: string) {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  if (!y || !m || !d) return dateStr;
+  const [y, m, d] = dateStr.split('-').map(Number)
+  if (!y || !m || !d) return dateStr
   return new Intl.DateTimeFormat(locale.value, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    timeZone: "UTC",
-  }).format(new Date(Date.UTC(y, m - 1, d)));
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(y, m - 1, d)))
 }
 
 // Trigger data loading when the metric is switched
-watch(selectedMetric, (value) => {
-  if (!isMounted.value) return;
-  loadMetric(value);
-});
+watch(selectedMetric, value => {
+  if (!isMounted.value) return
+  loadMetric(value)
+})
 
 // Sparkline charts (a11y alternative display for multi series)
-const chartLayout = usePermalink<"combined" | "split">("layout", "combined");
+const chartLayout = usePermalink<'combined' | 'split'>('layout', 'combined')
 const isSparklineLayout = computed({
-  get: () => chartLayout.value === "split",
+  get: () => chartLayout.value === 'split',
   set: (v: boolean) => {
-    chartLayout.value = v ? "split" : "combined";
+    chartLayout.value = v ? 'split' : 'combined'
   },
-});
+})
 </script>
 
 <template>
@@ -1647,14 +1647,14 @@ const isSparklineLayout = computed({
     >
       <TabList :ariaLabel="$t('package.trends.chart_view_toggle')">
         <TabItem value="combined" tab-id="combined-chart-layout-tab" icon="i-lucide:chart-line">
-          {{ $t("package.trends.chart_view_combined") }}
+          {{ $t('package.trends.chart_view_combined') }}
         </TabItem>
         <TabItem
           value="split"
           tab-id="split-chart-layout-tab"
           icon="i-lucide:square-split-horizontal"
         >
-          {{ $t("package.trends.chart_view_split") }}
+          {{ $t('package.trends.chart_view_split') }}
         </TabItem>
       </TabList>
     </TabRoot>
@@ -1666,7 +1666,7 @@ const isSparklineLayout = computed({
           id="trends-metric-select"
           v-model="selectedMetric"
           :disabled="activeMetricState.pending"
-          :items="METRICS.map((m) => ({ label: m.label, value: m.id }))"
+          :items="METRICS.map(m => ({ label: m.label, value: m.id }))"
           :label="$t('package.trends.facet')"
           block
         />
@@ -1686,7 +1686,7 @@ const isSparklineLayout = computed({
               for="startDate"
               class="text-2xs font-mono text-fg-subtle tracking-wide uppercase"
             >
-              {{ $t("package.trends.start_date") }}
+              {{ $t('package.trends.start_date') }}
             </label>
             <div class="relative flex items-center">
               <InputBase
@@ -1701,7 +1701,7 @@ const isSparklineLayout = computed({
 
           <div class="flex flex-col gap-1">
             <label for="endDate" class="text-2xs font-mono text-fg-subtle tracking-wide uppercase">
-              {{ $t("package.trends.end_date") }}
+              {{ $t('package.trends.end_date') }}
             </label>
             <div class="relative flex items-center">
               <InputBase
@@ -1740,7 +1740,7 @@ const isSparklineLayout = computed({
             :class="showCorrectionControls ? 'i-lucide:chevron-down' : 'i-lucide:chevron-right'"
             aria-hidden="true"
           />
-          {{ $t("package.trends.data_correction") }}
+          {{ $t('package.trends.data_correction') }}
         </button>
         <div
           class="overflow-hidden transition-[opacity] duration-200 ease-out"
@@ -1757,7 +1757,7 @@ const isSparklineLayout = computed({
             <div class="grid grid-cols-2 sm:flex items-end gap-3">
               <label class="flex flex-col gap-1 flex-1">
                 <span class="text-2xs font-mono text-fg-subtle tracking-wide uppercase">
-                  {{ $t("package.trends.average_window") }}
+                  {{ $t('package.trends.average_window') }}
                   <span class="text-fg-muted">({{ localSettings.chartFilter.averageWindow }})</span>
                 </span>
                 <input
@@ -1772,7 +1772,7 @@ const isSparklineLayout = computed({
               </label>
               <label class="flex flex-col gap-1 flex-1">
                 <span class="text-2xs font-mono text-fg-subtle tracking-wide uppercase">
-                  {{ $t("package.trends.smoothing") }}
+                  {{ $t('package.trends.smoothing') }}
                   <span class="text-fg-muted">({{ localSettings.chartFilter.smoothingTau }})</span>
                 </span>
                 <input
@@ -1787,7 +1787,7 @@ const isSparklineLayout = computed({
               </label>
               <label class="flex flex-col gap-1 flex-1">
                 <span class="text-2xs font-mono text-fg-subtle tracking-wide uppercase">
-                  {{ $t("package.trends.prediction") }}
+                  {{ $t('package.trends.prediction') }}
                   <span class="text-fg-muted"
                     >({{ localSettings.chartFilter.predictionPoints }})</span
                   >
@@ -1806,7 +1806,7 @@ const isSparklineLayout = computed({
                 <span
                   class="text-2xs font-mono text-fg-subtle tracking-wide uppercase flex items-center justify-between"
                 >
-                  {{ $t("package.trends.known_anomalies") }}
+                  {{ $t('package.trends.known_anomalies') }}
                   <TooltipApp
                     interactive
                     :to="inModal ? '#chart-modal' : undefined"
@@ -1820,22 +1820,22 @@ const isSparklineLayout = computed({
                     <template #content>
                       <div class="flex flex-col gap-3">
                         <p class="text-xs text-fg-muted">
-                          {{ $t("package.trends.known_anomalies_description") }}
+                          {{ $t('package.trends.known_anomalies_description') }}
                         </p>
                         <div v-if="hasAnomalies">
                           <p class="text-xs text-fg-subtle font-medium">
-                            {{ $t("package.trends.known_anomalies_ranges") }}
+                            {{ $t('package.trends.known_anomalies_ranges') }}
                           </p>
                           <ul class="text-xs text-fg-subtle list-disc list-inside">
                             <li v-for="a in packageAnomalies" :key="`${a.packageName}-${a.start}`">
                               {{
                                 isMultiPackageMode
-                                  ? $t("package.trends.known_anomalies_range_named", {
+                                  ? $t('package.trends.known_anomalies_range_named', {
                                       packageName: a.packageName,
                                       start: formatAnomalyDate(a.start),
                                       end: formatAnomalyDate(a.end),
                                     })
-                                  : $t("package.trends.known_anomalies_range", {
+                                  : $t('package.trends.known_anomalies_range', {
                                       start: formatAnomalyDate(a.start),
                                       end: formatAnomalyDate(a.end),
                                     })
@@ -1845,7 +1845,7 @@ const isSparklineLayout = computed({
                         </div>
                         <p v-else class="text-xs text-fg-muted">
                           {{
-                            $t("package.trends.known_anomalies_none", effectivePackageNames.length)
+                            $t('package.trends.known_anomalies_none', effectivePackageNames.length)
                           }}
                         </p>
                         <div class="flex justify-end">
@@ -1853,7 +1853,7 @@ const isSparklineLayout = computed({
                             to="https://github.com/npmx-dev/npmx.dev/edit/main/app/utils/download-anomalies.data.ts"
                             class="text-xs text-accent"
                           >
-                            {{ $t("package.trends.known_anomalies_contribute") }}
+                            {{ $t('package.trends.known_anomalies_contribute') }}
                           </LinkBase>
                         </div>
                       </div>
@@ -1875,7 +1875,7 @@ const isSparklineLayout = computed({
                     type="checkbox"
                     class="accent-[var(--accent-color,var(--fg-subtle))]"
                   />
-                  {{ $t("package.trends.apply_correction") }}
+                  {{ $t('package.trends.apply_correction') }}
                 </label>
               </div>
             </div>
@@ -1884,13 +1884,13 @@ const isSparklineLayout = computed({
       </div>
 
       <p v-if="skippedPackagesWithoutGitHub.length > 0" class="text-2xs font-mono text-fg-subtle">
-        {{ $t("package.trends.contributors_skip", { count: skippedPackagesWithoutGitHub.length }) }}
-        {{ skippedPackagesWithoutGitHub.join(", ") }}
+        {{ $t('package.trends.contributors_skip', { count: skippedPackagesWithoutGitHub.length }) }}
+        {{ skippedPackagesWithoutGitHub.join(', ') }}
       </p>
     </div>
 
     <h2 id="trends-chart-title" class="sr-only">
-      {{ $t("package.trends.title") }} — {{ activeMetricDef?.label }}
+      {{ $t('package.trends.title') }} — {{ activeMetricDef?.label }}
     </h2>
 
     <!-- Chart panel (active metric) -->
@@ -1944,7 +1944,7 @@ const isSparklineLayout = computed({
             <!-- Keyboard navigation hint -->
             <template #hint="{ isVisible }">
               <p v-if="isVisible" class="text-accent text-xs -mt-6 text-center" aria-hidden="true">
-                {{ $t("compare.packages.line_chart_nav_hint") }}
+                {{ $t('compare.packages.line_chart_nav_hint') }}
               </p>
             </template>
 
@@ -2052,7 +2052,7 @@ const isSparklineLayout = computed({
                       stroke-linecap="round"
                     />
                   </svg>
-                  <span class="text-fg-subtle">{{ $t("package.trends.legend_estimation") }}</span>
+                  <span class="text-fg-subtle">{{ $t('package.trends.legend_estimation') }}</span>
                 </div>
               </div>
             </template>
@@ -2185,7 +2185,7 @@ const isSparklineLayout = computed({
         v-if="!chartData.dataset && !activeMetricState.pending"
         class="min-h-[260px] flex items-center justify-center text-fg-subtle font-mono text-sm"
       >
-        {{ $t("package.trends.no_data") }}
+        {{ $t('package.trends.no_data') }}
       </div>
     </div>
 
@@ -2195,7 +2195,7 @@ const isSparklineLayout = computed({
       aria-live="polite"
       class="absolute top-1/2 inset-is-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-fg-subtle font-mono bg-bg/70 backdrop-blur px-3 py-2 rounded-md border border-border"
     >
-      {{ $t("package.trends.loading") }}
+      {{ $t('package.trends.loading') }}
     </div>
   </div>
 </template>
@@ -2236,11 +2236,11 @@ const isSparklineLayout = computed({
   }
 }
 
-[data-pending="true"] .vue-data-ui-zoom {
+[data-pending='true'] .vue-data-ui-zoom {
   opacity: 0.1;
 }
 
-[data-pending="true"] .vue-data-ui-time-label {
+[data-pending='true'] .vue-data-ui-time-label {
   opacity: 0;
 }
 
@@ -2249,7 +2249,7 @@ const isSparklineLayout = computed({
   top: unset !important;
 }
 
-[data-minimap-visible="false"] .vue-data-ui-watermark {
+[data-minimap-visible='false'] .vue-data-ui-watermark {
   top: calc(100% - 2rem) !important;
 }
 
