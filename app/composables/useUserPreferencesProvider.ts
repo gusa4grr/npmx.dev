@@ -40,6 +40,8 @@ function createProvider(defaultValue: HydratedUserPreferences) {
 
   async function initSync(): Promise<void> {
     if (syncInitialized || import.meta.server) return
+    const { applyStoredColorMode } = useColorModePreference()
+
     syncInitialized = true
 
     // Resolve auth + sync dependencies lazily
@@ -104,6 +106,8 @@ function createProvider(defaultValue: HydratedUserPreferences) {
     if (isAuthenticated.value) {
       await syncWithServer()
     }
+
+    applyStoredColorMode()
 
     watch(
       preferences,

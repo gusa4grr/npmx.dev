@@ -14,7 +14,7 @@ declare global {
   var __useAtprotoMock: UseAtprotoReturn | undefined
 }
 
-function _useAtprotoImpl(): UseAtprotoReturn {
+function useAtprotoImpl(): UseAtprotoReturn {
   if (import.meta.test && globalThis.__useAtprotoMock) {
     return globalThis.__useAtprotoMock
   }
@@ -39,8 +39,6 @@ function _useAtprotoImpl(): UseAtprotoReturn {
   return { user, pending, logout }
 }
 
-// In tests, skip createSharedComposable so each call checks globalThis.__useAtprotoMock fresh.
-// In production, import.meta.test is false and the test branch is tree-shaken.
-export const useAtproto = import.meta.test
-  ? _useAtprotoImpl
-  : createSharedComposable(_useAtprotoImpl)
+export const useAtproto: () => UseAtprotoReturn = import.meta.test
+  ? useAtprotoImpl
+  : createSharedComposable(useAtprotoImpl)

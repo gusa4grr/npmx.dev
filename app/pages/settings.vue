@@ -238,26 +238,40 @@ const setLocale: typeof setNuxti18nLocale = newLocale => {
                 </template>
               </ClientOnly>
 
-              <!-- Provider description -->
-              <p class="text-xs text-fg-subtle mt-2">
-                {{
-                  preferences.searchProvider === 'algolia'
-                    ? $t('settings.data_source.algolia_description')
-                    : $t('settings.data_source.npm_description')
-                }}
-              </p>
-
-              <!-- Algolia attribution -->
-              <a
-                v-if="preferences.searchProvider === 'algolia'"
-                href="https://www.algolia.com/developers"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 text-xs text-fg-subtle hover:text-fg-muted transition-colors mt-2"
-              >
-                {{ $t('search.algolia_disclaimer') }}
-                <span class="i-lucide:external-link w-3 h-3" aria-hidden="true" />
-              </a>
+              <!-- Provider description & Algolia attribution -->
+              <ClientOnly>
+                <p class="text-xs text-fg-subtle mt-2">
+                  {{
+                    preferences.searchProvider === 'algolia'
+                      ? $t('settings.data_source.algolia_description')
+                      : $t('settings.data_source.npm_description')
+                  }}
+                </p>
+                <a
+                  v-if="preferences.searchProvider === 'algolia'"
+                  href="https://www.algolia.com/developers"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 text-xs text-fg-subtle hover:text-fg-muted transition-colors mt-2"
+                >
+                  {{ $t('search.algolia_disclaimer') }}
+                  <span class="i-lucide:external-link w-3 h-3" aria-hidden="true" />
+                </a>
+                <template #fallback>
+                  <p class="text-xs text-fg-subtle mt-2">
+                    {{ $t('settings.data_source.algolia_description') }}
+                  </p>
+                  <a
+                    href="https://www.algolia.com/developers"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1 text-xs text-fg-subtle hover:text-fg-muted transition-colors mt-2"
+                  >
+                    {{ $t('search.algolia_disclaimer') }}
+                    <span class="i-lucide:external-link w-3 h-3" aria-hidden="true" />
+                  </a>
+                </template>
+              </ClientOnly>
             </div>
 
             <div class="border-t border-border my-4" />

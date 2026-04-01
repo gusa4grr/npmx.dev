@@ -138,6 +138,23 @@ export function useSearch(
     suggestionsLoading.value = false
   }
 
+  // Bridge SSR payload when provider differs between server and client.
+  // SSR always uses the default provider ('algolia'), but the client may
+  // read a different provider from localStorage. Copy the SSR data to the
+  // client's cache key so useLazyAsyncData can hydrate without a mismatch.
+  if (import.meta.client) {
+    const nuxtApp = useNuxtApp()
+    const q = toValue(query)
+    const provider = toValue(searchProvider)
+    if (nuxtApp.isHydrating && q && provider !== 'algolia') {
+      const ssrKey = `search:algolia:${q}`
+      const clientKey = `search:${provider}:${q}`
+      if (nuxtApp.payload.data[ssrKey] && !nuxtApp.payload.data[clientKey]) {
+        nuxtApp.payload.data[clientKey] = nuxtApp.payload.data[ssrKey]
+      }
+    }
+  }
+
   const asyncData = useLazyAsyncData(
     () => `search:${toValue(searchProvider)}:${toValue(query)}`,
     async (_nuxtApp, { signal }) => {
