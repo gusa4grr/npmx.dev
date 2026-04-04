@@ -1,3 +1,30 @@
+/**
+ * Bridge SSR payload when the resolved search provider on the client differs
+ * from the server default ('algolia'). Copies the SSR-cached data to the
+ * client's cache key so `useLazyAsyncData` hydrates without a refetch.
+ *
+ * Must be called at composable setup time (not inside an async callback).
+ */
+export function bridgeSearchSSRPayload(
+  prefix: string,
+  identifier: MaybeRefOrGetter<string>,
+  provider: MaybeRefOrGetter<string>,
+): void {
+  if (import.meta.client) {
+    const nuxtApp = useNuxtApp()
+    const id = toValue(identifier)
+    const p = toValue(provider)
+
+    if (nuxtApp.isHydrating && id && p !== 'algolia') {
+      const ssrKey = `${prefix}:algolia:${id}`
+      const clientKey = `${prefix}:${p}:${id}`
+      if (nuxtApp.payload.data[ssrKey] && !nuxtApp.payload.data[clientKey]) {
+        nuxtApp.payload.data[clientKey] = nuxtApp.payload.data[ssrKey]
+      }
+    }
+  }
+}
+
 export function metaToSearchResult(meta: PackageMetaResponse): NpmSearchResult {
   return {
     package: {

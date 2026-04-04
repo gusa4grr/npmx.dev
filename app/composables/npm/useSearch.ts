@@ -1,3 +1,5 @@
+import { bridgeSearchSSRPayload } from './search-utils'
+
 function emptySearchPayload() {
   return {
     searchResponse: emptySearchResponse(),
@@ -135,6 +137,8 @@ export function useSearch(
 
     suggestionsLoading.value = false
   }
+
+  bridgeSearchSSRPayload('search', query, searchProvider)
 
   const asyncData = useLazyAsyncData(
     () => `search:${toValue(searchProvider)}:${toValue(query)}`,
@@ -466,8 +470,10 @@ export function useSearch(
     })
   }
 
+  const { data: _data, ...rest } = asyncData
+
   return {
-    ...asyncData,
+    ...rest,
     data,
     isLoadingMore,
     hasMore,

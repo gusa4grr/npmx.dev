@@ -3,6 +3,7 @@ import { useLocalStorage } from '@vueuse/core'
 import { ACCENT_COLORS, type AccentColorId } from '#shared/utils/constants'
 import type { LocaleObject } from '@nuxtjs/i18n'
 import { BACKGROUND_THEMES } from '#shared/utils/constants'
+import { normalizeSearchParam } from '#shared/utils/url'
 
 type BackgroundThemeId = keyof typeof BACKGROUND_THEMES
 
@@ -181,9 +182,14 @@ export function useAccentColor() {
  */
 export function useSearchProvider() {
   const { settings } = useSettings()
+  const route = useRoute()
 
   const searchProvider = computed({
-    get: () => settings.value.searchProvider,
+    get: () => {
+      const p = normalizeSearchParam(route.query.p)
+      if (p === 'npm' || p === 'algolia') return p
+      return settings.value.searchProvider
+    },
     set: (value: SearchProvider) => {
       settings.value.searchProvider = value
     },

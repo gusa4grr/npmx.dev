@@ -102,15 +102,19 @@ test.describe('Search Pages', () => {
     const firstResult = page.locator('[data-result-index="0"]').first()
     await expect(firstResult).toBeVisible()
 
-    // Global keyboard navigation works regardless of focus
-    // ArrowDown selects the next result
+    // Wait for the @vue org suggestion card to appear
+    const orgSuggestion = page.locator('[data-suggestion-index="0"]')
+    await expect(orgSuggestion).toBeVisible({ timeout: 10000 })
+
+    // ArrowDown focuses the org suggestion card
     await page.keyboard.press('ArrowDown')
 
-    // ArrowUp selects the previous result
+    // ArrowUp returns to the search input
     await page.keyboard.press('ArrowUp')
 
-    // Enter navigates to the selected result
+    // ArrowDown again, then Enter navigates to the suggestion
     // URL is /package/vue or /org/vue or /user/vue. Not /vue
+    await page.keyboard.press('ArrowDown')
     await page.keyboard.press('Enter')
     await expect(page).toHaveURL(/\/(package|org|user)\/vue/)
   })
@@ -130,16 +134,24 @@ test.describe('Search Pages', () => {
     await expect(firstResult).toBeVisible()
     await expect(secondResult).toBeVisible()
 
-    // ArrowDown from input focuses the first result
+    // Wait for the @vue org suggestion card to appear
+    const orgSuggestion = page.locator('[data-suggestion-index="0"]')
+    await expect(orgSuggestion).toBeVisible({ timeout: 10000 })
+
+    // ArrowDown focuses the org suggestion first
+    await page.keyboard.press('ArrowDown')
+    await expect(orgSuggestion).toBeFocused()
+
+    // Next ArrowDown focuses the first package result
     await page.keyboard.press('ArrowDown')
     await expect(firstResult).toBeFocused()
 
-    // Second ArrowDown focuses the second result (not a keyword button within the first)
+    // Next ArrowDown focuses the second result (not a keyword button within the first)
     await page.keyboard.press('ArrowDown')
     await expect(secondResult).toBeFocused()
   })
 
-  test('/search?q=vue → ArrowUp from first result returns focus to search input', async ({
+  test('/search?q=vue → ArrowUp from first result navigates back through suggestions to input', async ({
     page,
     goto,
   }) => {
@@ -149,11 +161,22 @@ test.describe('Search Pages', () => {
       timeout: 15000,
     })
 
-    // Navigate to first result
+    // Wait for the @vue org suggestion card to appear
+    const orgSuggestion = page.locator('[data-suggestion-index="0"]')
+    await expect(orgSuggestion).toBeVisible({ timeout: 10000 })
+
+    // Navigate: suggestion → first package result
+    await page.keyboard.press('ArrowDown')
+    await expect(orgSuggestion).toBeFocused()
+
     await page.keyboard.press('ArrowDown')
     await expect(page.locator('[data-result-index="0"]').first()).toBeFocused()
 
-    // ArrowUp returns to the search input
+    // ArrowUp goes back to the org suggestion
+    await page.keyboard.press('ArrowUp')
+    await expect(orgSuggestion).toBeFocused()
+
+    // ArrowUp from suggestion returns to the search input
     await page.keyboard.press('ArrowUp')
     await expect(page.locator('input[type="search"]')).toBeFocused()
   })

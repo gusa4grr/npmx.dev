@@ -1,4 +1,3 @@
-import { normalizeSearchParam } from '#shared/utils/url'
 import { debounce } from 'perfect-debounce'
 
 // Pages that have their own local filter using ?q
@@ -9,11 +8,6 @@ const SEARCH_DEBOUNCE_MS = 100
 export function useGlobalSearch(place: 'header' | 'content' = 'content') {
   const { settings } = useSettings()
   const { searchProvider } = useSearchProvider()
-  const searchProviderValue = computed(() => {
-    const p = normalizeSearchParam(route.query.p)
-    if (p === 'npm' || searchProvider.value === 'npm') return 'npm'
-    return 'algolia'
-  })
 
   const router = useRouter()
   const route = useRoute()
@@ -111,7 +105,7 @@ export function useGlobalSearch(place: 'header' | 'content' = 'content') {
   return {
     model: searchQueryValue,
     committedModel: committedSearchQuery,
-    provider: searchProviderValue,
+    provider: searchProvider,
     startSearch: flushUpdateUrlQuery,
   }
 }

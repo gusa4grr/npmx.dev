@@ -1,0 +1,276 @@
+{
+  "objects": [
+    {
+      "downloads": {
+        "monthly": 42528330,
+        "weekly": 10046250
+      },
+      "dependents": "353",
+      "updated": "2026-04-04T05:53:21.032Z",
+      "searchScore": 326.28113,
+      "package": {
+        "name": "@vue/reactivity",
+        "keywords": ["vue"],
+        "version": "3.5.32",
+        "description": "@vue/reactivity",
+        "sanitized_name": "@vue/reactivity",
+        "publisher": {
+          "email": "npm-oidc-no-reply@github.com",
+          "actor": {
+            "name": "yyx990803",
+            "type": "user",
+            "email": "user1@example.com"
+          },
+          "trustedPublisher": {
+            "oidcConfigId": "oidc:6c458fb2-e383-47c3-a8d5-9f222de480c7",
+            "id": "github"
+          },
+          "username": "GitHub Actions"
+        },
+        "maintainers": [
+          {
+            "email": "user1@example.com",
+            "username": "yyx990803"
+          }
+        ],
+        "license": "MIT",
+        "date": "2026-04-03T05:41:19.887Z",
+        "links": {
+          "homepage": "https://github.com/vuejs/core/tree/main/packages/reactivity#readme",
+          "repository": "git+https://github.com/vuejs/core.git",
+          "bugs": "https://github.com/vuejs/core/issues",
+          "npm": "https://www.npmjs.com/package/@vue/reactivity"
+        }
+      },
+      "score": {
+        "final": 326.28113,
+        "detail": {
+          "popularity": 1,
+          "quality": 1,
+          "maintenance": 1
+        }
+      },
+      "flags": {
+        "insecure": 0
+      }
+    },
+    {
+      "downloads": {
+        "monthly": 70415933,
+        "weekly": 16592714
+      },
+      "dependents": "1585",
+      "updated": "2026-04-04T05:54:16.908Z",
+      "searchScore": 323.52698,
+      "package": {
+        "name": "@vue/compiler-sfc",
+        "keywords": ["vue"],
+        "version": "3.5.32",
+        "description": "@vue/compiler-sfc",
+        "sanitized_name": "@vue/compiler-sfc",
+        "publisher": {
+          "email": "npm-oidc-no-reply@github.com",
+          "actor": {
+            "name": "yyx990803",
+            "type": "user",
+            "email": "user1@example.com"
+          },
+          "trustedPublisher": {
+            "oidcConfigId": "oidc:64385cf4-8269-4c1a-878c-1ac2242d2518",
+            "id": "github"
+          },
+          "username": "GitHub Actions"
+        },
+        "maintainers": [
+          {
+            "email": "user1@example.com",
+            "username": "yyx990803"
+          }
+        ],
+        "license": "MIT",
+        "date": "2026-04-03T05:41:12.043Z",
+        "links": {
+          "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-sfc#readme",
+          "repository": "git+https://github.com/vuejs/core.git",
+          "bugs": "https://github.com/vuejs/core/issues",
+          "npm": "https://www.npmjs.com/package/@vue/compiler-sfc"
+        }
+      },
+      "score": {
+        "final": 323.52698,
+        "detail": {
+          "popularity": 1,
+          "quality": 1,
+          "maintenance": 1
+        }
+      },
+      "flags": {
+        "insecure": 0
+      }
+    },
+    {
+      "downloads": {
+        "monthly": 76938866,
+        "weekly": 17911179
+      },
+      "dependents": "181",
+      "updated": "2026-04-04T05:53:29.454Z",
+      "searchScore": 319.66876,
+      "package": {
+        "name": "@vue/compiler-core",
+        "keywords": ["vue"],
+        "version": "3.5.32",
+        "description": "@vue/compiler-core",
+        "sanitized_name": "@vue/compiler-core",
+        "publisher": {
+          "email": "npm-oidc-no-reply@github.com",
+          "actor": {
+            "name": "yyx990803",
+            "type": "user",
+            "email": "user1@example.com"
+          },
+          "trustedPublisher": {
+            "oidcConfigId": "oidc:117f4cf5-a20b-4bd8-a187-4a12264b0950",
+            "id": "github"
+          },
+          "username": "GitHub Actions"
+        },
+        "maintainers": [
+          {
+            "email": "user1@example.com",
+            "username": "yyx990803"
+          }
+        ],
+        "license": "MIT",
+        "date": "2026-04-03T05:41:04.047Z",
+        "links": {
+          "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-core#readme",
+          "repository": "git+https://github.com/vuejs/core.git",
+          "bugs": "https://github.com/vuejs/core/issues",
+          "npm": "https://www.npmjs.com/package/@vue/compiler-core"
+        }
+      },
+      "score": {
+        "final": 319.66876,
+        "detail": {
+          "popularity": 1,
+          "quality": 1,
+          "maintenance": 1
+        }
+      },
+      "flags": {
+        "insecure": 0
+      }
+    },
+    {
+      "downloads": {
+        "monthly": 64990041,
+        "weekly": 15337637
+      },
+      "dependents": "18",
+      "updated": "2026-04-04T05:54:11.712Z",
+      "searchScore": 316.99716,
+      "package": {
+        "name": "@vue/compiler-ssr",
+        "keywords": ["vue"],
+        "version": "3.5.32",
+        "description": "@vue/compiler-ssr",
+        "sanitized_name": "@vue/compiler-ssr",
+        "publisher": {
+          "email": "npm-oidc-no-reply@github.com",
+          "actor": {
+            "name": "yyx990803",
+            "type": "user",
+            "email": "user1@example.com"
+          },
+          "trustedPublisher": {
+            "oidcConfigId": "oidc:ba968dda-7e8c-462c-bb5c-93dd5925b1fd",
+            "id": "github"
+          },
+          "username": "GitHub Actions"
+        },
+        "maintainers": [
+          {
+            "email": "user1@example.com",
+            "username": "yyx990803"
+          }
+        ],
+        "license": "MIT",
+        "date": "2026-04-03T05:41:16.007Z",
+        "links": {
+          "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-ssr#readme",
+          "repository": "git+https://github.com/vuejs/core.git",
+          "bugs": "https://github.com/vuejs/core/issues",
+          "npm": "https://www.npmjs.com/package/@vue/compiler-ssr"
+        }
+      },
+      "score": {
+        "final": 316.99716,
+        "detail": {
+          "popularity": 1,
+          "quality": 1,
+          "maintenance": 1
+        }
+      },
+      "flags": {
+        "insecure": 0
+      }
+    },
+    {
+      "downloads": {
+        "monthly": 76436400,
+        "weekly": 17802103
+      },
+      "dependents": "313",
+      "updated": "2026-04-04T05:53:13.980Z",
+      "searchScore": 316.62955,
+      "package": {
+        "name": "@vue/compiler-dom",
+        "keywords": ["vue"],
+        "version": "3.5.32",
+        "description": "@vue/compiler-dom",
+        "sanitized_name": "@vue/compiler-dom",
+        "publisher": {
+          "email": "npm-oidc-no-reply@github.com",
+          "actor": {
+            "name": "yyx990803",
+            "type": "user",
+            "email": "user1@example.com"
+          },
+          "trustedPublisher": {
+            "oidcConfigId": "oidc:0f300997-f0ce-43a2-9497-61c22541e3b0",
+            "id": "github"
+          },
+          "username": "GitHub Actions"
+        },
+        "maintainers": [
+          {
+            "email": "user1@example.com",
+            "username": "yyx990803"
+          }
+        ],
+        "license": "MIT",
+        "date": "2026-04-03T05:41:07.863Z",
+        "links": {
+          "homepage": "https://github.com/vuejs/core/tree/main/packages/compiler-dom#readme",
+          "repository": "git+https://github.com/vuejs/core.git",
+          "bugs": "https://github.com/vuejs/core/issues",
+          "npm": "https://www.npmjs.com/package/@vue/compiler-dom"
+        }
+      },
+      "score": {
+        "final": 316.62955,
+        "detail": {
+          "popularity": 1,
+          "quality": 1,
+          "maintenance": 1
+        }
+      },
+      "flags": {
+        "insecure": 0
+      }
+    }
+  ],
+  "total": 141849,
+  "time": "2026-04-04T09:30:28.192Z"
+}
