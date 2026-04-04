@@ -1,4 +1,3 @@
-import { normalizeSearchParam } from '#shared/utils/url'
 import { debounce } from 'perfect-debounce'
 
 // Pages that have their own local filter using ?q
@@ -9,11 +8,6 @@ const SEARCH_DEBOUNCE_MS = 100
 export function useGlobalSearch(place: 'header' | 'content' = 'content') {
   const instantSearch = useInstantSearchPreference()
   const { searchProvider } = useSearchProvider()
-  const searchProviderValue = computed(() => {
-    const p = normalizeSearchParam(route.query.p)
-    if (p === 'npm' || searchProvider.value === 'npm') return 'npm'
-    return 'algolia'
-  })
 
   const router = useRouter()
   const route = useRoute()
@@ -36,7 +30,7 @@ export function useGlobalSearch(place: 'header' | 'content' = 'content') {
   // This is basically doing instant search as user types
   watch(searchQuery, val => {
     if (instantSearch.value) {
-      commitSearchQuery(val)
+      void commitSearchQuery(val)
     }
   })
 
@@ -52,14 +46,15 @@ export function useGlobalSearch(place: 'header' | 'content' = 'content') {
 
   // Updates URL when search query changes (immediately for instantSearch or after Enter hit otherwise)
   const updateUrlQueryImpl = (value: string, provider: 'npm' | 'algolia') => {
-    const isSameQuery = route.query.q === value && route.query.p === provider
+    const urlProvider = provider === 'npm' ? 'npm' : undefined
+    const isSameQuery = route.query.q === value && route.query.p === urlProvider
     // Don't navigate away from pages that use ?q for local filtering
     if ((pagesWithLocalFilter.has(route.name as string) && place === 'content') || isSameQuery) {
       return
     }
 
     if (route.name === 'search') {
-      router.replace({
+      void router.replace({
         query: {
           ...route.query,
           q: value || undefined,
@@ -68,7 +63,7 @@ export function useGlobalSearch(place: 'header' | 'content' = 'content') {
       })
       return
     }
-    router.push({
+    void router.push({
       name: 'search',
       query: {
         q: value,
@@ -87,7 +82,7 @@ export function useGlobalSearch(place: 'header' | 'content' = 'content') {
     if (!instantSearch.value) {
       updateUrlQueryImpl(searchQuery.value, searchProvider.value)
     } else {
-      updateUrlQuery.flush()
+      void updateUrlQuery.flush()
     }
   }
 
@@ -104,14 +99,14 @@ export function useGlobalSearch(place: 'header' | 'content' = 'content') {
       if (!updateUrlQuery.isPending()) {
         updateUrlQueryImpl(value, searchProvider.value)
       }
-      updateUrlQuery(value, searchProvider.value)
+      void updateUrlQuery(value, searchProvider.value)
     },
   })
 
   return {
     model: searchQueryValue,
     committedModel: committedSearchQuery,
-    provider: searchProviderValue,
+    provider: searchProvider,
     startSearch: flushUpdateUrlQuery,
   }
 }

@@ -1,3 +1,5 @@
+import { bridgeSearchSSRPayload } from './search-utils'
+
 /**
  * Fetch all packages for an npm organization.
  *
@@ -6,17 +8,13 @@
  * 3. Falls back to lightweight server-side package-meta lookups
  */
 export function useOrgPackages(orgName: MaybeRefOrGetter<string>) {
-  const route = useRoute()
   const { searchProvider } = useSearchProvider()
-  const searchProviderValue = computed(() => {
-    const p = normalizeSearchParam(route.query.p)
-    if (p === 'npm' || searchProvider.value === 'npm') return 'npm'
-    return 'algolia'
-  })
   const { getPackagesByName } = useAlgoliaSearch()
 
+  bridgeSearchSSRPayload('org-packages', orgName, searchProvider)
+
   const asyncData = useLazyAsyncData(
-    () => `org-packages:${searchProviderValue.value}:${toValue(orgName)}`,
+    () => `org-packages:${searchProvider.value}:${toValue(orgName)}`,
     async ({ ssrContext }, { signal }) => {
       const org = toValue(orgName)
       if (!org) {
@@ -53,7 +51,7 @@ export function useOrgPackages(orgName: MaybeRefOrGetter<string>) {
       }
 
       // Fetch metadata + downloads from Algolia (single request via getObjects)
-      if (searchProviderValue.value === 'algolia') {
+      if (searchProvider.value === 'algolia') {
         try {
           const response = await getPackagesByName(packageNames)
           if (response.objects.length > 0) {

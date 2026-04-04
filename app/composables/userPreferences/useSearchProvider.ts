@@ -1,10 +1,16 @@
 import type { SearchProvider } from '#shared/schemas/userPreferences'
+import { normalizeSearchParam } from '#shared/utils/url'
 
 export function useSearchProvider() {
   const { preferences } = useUserPreferencesState()
+  const route = useRoute()
 
   const searchProvider = computed({
-    get: () => preferences.value.searchProvider ?? 'algolia',
+    get: () => {
+      const p = normalizeSearchParam(route.query.p)
+      if (p === 'npm' || p === 'algolia') return p
+      return preferences.value.searchProvider ?? 'algolia'
+    },
     set: (value: SearchProvider) => {
       preferences.value.searchProvider = value
     },

@@ -289,10 +289,10 @@ defineOgImageComponent('Default', {
 })
 
 onPrehydrate(el => {
-  const settingsSaved = JSON.parse(localStorage.getItem('npmx-settings') || '{}')
+  const localSettings = JSON.parse(localStorage.getItem('npmx-settings') || '{}')
   const container = el.querySelector('#code-page-container')
 
-  if (settingsSaved?.codeContainerFull === true && container) {
+  if (localSettings?.codeContainerFull === true && container) {
     container.classList.add('container-full')
   }
 })

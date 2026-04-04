@@ -12,6 +12,7 @@ export interface UserLocalSettings {
     anomaliesFixed: boolean
     predictionPoints: number
   }
+  codeContainerFull: boolean
 }
 
 const STORAGE_KEY = 'npmx-settings'
@@ -29,6 +30,7 @@ const DEFAULT_USER_LOCAL_SETTINGS: UserLocalSettings = {
     anomaliesFixed: true,
     predictionPoints: 4,
   },
+  codeContainerFull: false,
 }
 
 let localSettingsRef: Ref<UserLocalSettings> | null = null

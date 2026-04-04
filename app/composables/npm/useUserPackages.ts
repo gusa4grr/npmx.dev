@@ -1,3 +1,5 @@
+import { bridgeSearchSSRPayload } from './search-utils'
+
 /** Default page size for incremental loading (npm registry path) */
 const PAGE_SIZE = 50 as const
 
@@ -19,13 +21,7 @@ const MAX_RESULTS = 250
  * ```
  */
 export function useUserPackages(username: MaybeRefOrGetter<string>) {
-  const route = useRoute()
   const { searchProvider } = useSearchProvider()
-  const searchProviderValue = computed(() => {
-    const p = normalizeSearchParam(route.query.p)
-    if (p === 'npm' || searchProvider.value === 'npm') return 'npm'
-    return 'algolia'
-  })
   // this is only used in npm path, but we need to extract it when the composable runs
   const { $npmRegistry } = useNuxtApp()
   const { searchByOwner } = useAlgoliaSearch()
@@ -35,7 +31,9 @@ export function useUserPackages(username: MaybeRefOrGetter<string>) {
 
   /** Tracks which provider actually served the current data (may differ from
    *  searchProvider when Algolia returns empty and we fall through to npm) */
-  const activeProvider = shallowRef<'npm' | 'algolia'>(searchProviderValue.value)
+  const activeProvider = shallowRef<'npm' | 'algolia'>(searchProvider.value)
+
+  bridgeSearchSSRPayload('user-packages', username, searchProvider)
 
   const cache = shallowRef<{
     username: string
@@ -46,14 +44,14 @@ export function useUserPackages(username: MaybeRefOrGetter<string>) {
   const isLoadingMore = shallowRef(false)
 
   const asyncData = useLazyAsyncData(
-    () => `user-packages:${searchProviderValue.value}:${toValue(username)}`,
+    () => `user-packages:${searchProvider.value}:${toValue(username)}`,
     async (_nuxtApp, { signal }) => {
       const user = toValue(username)
       if (!user) {
         return emptySearchResponse()
       }
 
-      const provider = searchProviderValue.value
+      const provider = searchProvider.value
 
       // --- Algolia: fetch all at once ---
       if (provider === 'algolia') {
@@ -61,7 +59,7 @@ export function useUserPackages(username: MaybeRefOrGetter<string>) {
           const response = await searchByOwner(user)
 
           // Guard against stale response (user/provider changed during await)
-          if (user !== toValue(username) || provider !== searchProviderValue.value) {
+          if (user !== toValue(username) || provider !== searchProvider.value) {
             return emptySearchResponse()
           }
 
@@ -98,7 +96,7 @@ export function useUserPackages(username: MaybeRefOrGetter<string>) {
       )
 
       // Guard against stale response (user/provider changed during await)
-      if (user !== toValue(username) || provider !== searchProviderValue.value) {
+      if (user !== toValue(username) || provider !== searchProvider.value) {
         return emptySearchResponse()
       }
 
@@ -197,7 +195,7 @@ export function useUserPackages(username: MaybeRefOrGetter<string>) {
   // asyncdata will automatically rerun due to key, but we need to reset cache/page
   // when provider changes
   watch(
-    () => searchProviderValue.value,
+    () => searchProvider.value,
     newProvider => {
       cache.value = null
       currentPage.value = 1
@@ -231,8 +229,10 @@ export function useUserPackages(username: MaybeRefOrGetter<string>) {
     return fetched < available && fetched < MAX_RESULTS
   })
 
+  const { data: _data, ...rest } = asyncData
+
   return {
-    ...asyncData,
+    ...rest,
     /** Reactive package results */
     data,
     /** Whether currently loading more results */

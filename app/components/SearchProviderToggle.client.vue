@@ -2,11 +2,6 @@
 const route = useRoute()
 const router = useRouter()
 const { searchProvider } = useSearchProvider()
-const searchProviderValue = computed(() => {
-  const p = normalizeSearchParam(route.query.p)
-  if (p === 'npm' || searchProvider.value === 'npm') return 'npm'
-  return 'algolia'
-})
 
 const isOpen = shallowRef(false)
 const toggleRef = useTemplateRef('toggleRef')
@@ -54,7 +49,7 @@ useEventListener('keydown', event => {
             type="button"
             role="menuitem"
             class="w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-start transition-colors hover:bg-bg-muted"
-            :class="[searchProviderValue !== 'algolia' ? 'bg-bg-muted' : '']"
+            :class="[searchProvider !== 'algolia' ? 'bg-bg-muted' : '']"
             @click="
               () => {
                 searchProvider = 'npm'
@@ -65,13 +60,13 @@ useEventListener('keydown', event => {
           >
             <span
               class="i-simple-icons:npm w-4 h-4 mt-0.5 shrink-0"
-              :class="searchProviderValue !== 'algolia' ? 'text-accent' : 'text-fg-muted'"
+              :class="searchProvider !== 'algolia' ? 'text-accent' : 'text-fg-muted'"
               aria-hidden="true"
             />
             <div class="min-w-0 flex-1">
               <div
                 class="text-sm font-medium"
-                :class="searchProviderValue !== 'algolia' ? 'text-fg' : 'text-fg-muted'"
+                :class="searchProvider !== 'algolia' ? 'text-fg' : 'text-fg-muted'"
               >
                 {{ $t('settings.data_source.npm') }}
               </div>
@@ -86,7 +81,7 @@ useEventListener('keydown', event => {
             type="button"
             role="menuitem"
             class="w-full flex items-start gap-3 px-3 py-2.5 rounded-md text-start transition-colors hover:bg-bg-muted mt-1"
-            :class="[searchProviderValue === 'algolia' ? 'bg-bg-muted' : '']"
+            :class="[searchProvider === 'algolia' ? 'bg-bg-muted' : '']"
             @click="
               () => {
                 searchProvider = 'algolia'
@@ -97,13 +92,13 @@ useEventListener('keydown', event => {
           >
             <span
               class="i-simple-icons:algolia w-4 h-4 mt-0.5 shrink-0"
-              :class="searchProviderValue === 'algolia' ? 'text-accent' : 'text-fg-muted'"
+              :class="searchProvider === 'algolia' ? 'text-accent' : 'text-fg-muted'"
               aria-hidden="true"
             />
             <div class="min-w-0 flex-1">
               <div
                 class="text-sm font-medium"
-                :class="searchProviderValue === 'algolia' ? 'text-fg' : 'text-fg-muted'"
+                :class="searchProvider === 'algolia' ? 'text-fg' : 'text-fg-muted'"
               >
                 {{ $t('settings.data_source.algolia') }}
               </div>
@@ -115,7 +110,7 @@ useEventListener('keydown', event => {
 
           <!-- Algolia attribution -->
           <div
-            v-if="searchProviderValue === 'algolia'"
+            v-if="searchProvider === 'algolia'"
             class="border-t border-border mx-1 mt-1 pt-2 pb-1"
           >
             <a

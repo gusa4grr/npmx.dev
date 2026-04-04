@@ -1,4 +1,5 @@
 import type { SearchProvider } from '#shared/schemas/userPreferences'
+import { bridgeSearchSSRPayload } from './search-utils'
 
 function emptySearchPayload() {
   return {
@@ -138,22 +139,7 @@ export function useSearch(
     suggestionsLoading.value = false
   }
 
-  // Bridge SSR payload when provider differs between server and client.
-  // SSR always uses the default provider ('algolia'), but the client may
-  // read a different provider from localStorage. Copy the SSR data to the
-  // client's cache key so useLazyAsyncData can hydrate without a mismatch.
-  if (import.meta.client) {
-    const nuxtApp = useNuxtApp()
-    const q = toValue(query)
-    const provider = toValue(searchProvider)
-    if (nuxtApp.isHydrating && q && provider !== 'algolia') {
-      const ssrKey = `search:algolia:${q}`
-      const clientKey = `search:${provider}:${q}`
-      if (nuxtApp.payload.data[ssrKey] && !nuxtApp.payload.data[clientKey]) {
-        nuxtApp.payload.data[clientKey] = nuxtApp.payload.data[ssrKey]
-      }
-    }
-  }
+  bridgeSearchSSRPayload('search', query, searchProvider)
 
   const asyncData = useLazyAsyncData(
     () => `search:${toValue(searchProvider)}:${toValue(query)}`,
@@ -481,12 +467,14 @@ export function useSearch(
 
   if (import.meta.client && asyncData.data.value?.searchResponse.isStale) {
     onMounted(() => {
-      asyncData.refresh()
+      void asyncData.refresh()
     })
   }
 
+  const { data: _data, ...rest } = asyncData
+
   return {
-    ...asyncData,
+    ...rest,
     data,
     isLoadingMore,
     hasMore,
